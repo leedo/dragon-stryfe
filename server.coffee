@@ -34,6 +34,8 @@ socket.on "connection", (client) ->
     client: client
     state:
       id: client_id++
+      speed: 0
+      angle: 0
       x: 0
       y: 0
 
@@ -50,7 +52,9 @@ socket.on "connection", (client) ->
     # update our state and broadcast it
     self.state.x = msg.x if msg.x
     self.state.y = msg.y if msg.y
-    broadcast("updatePlayer", self.state)
+    self.state.speed = msg.speed if msg.speed
+    self.state.angle = msg.angle if msg.angle
+    broadcast("syncPlayer", self.state)
 
   client.on "disconnect", ->
     index = players.indexOf self

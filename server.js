@@ -55,6 +55,8 @@
       client: client,
       state: {
         id: client_id++,
+        speed: 0,
+        angle: 0,
         x: 0,
         y: 0
       }
@@ -78,7 +80,13 @@
       if (msg.y) {
         self.state.y = msg.y;
       }
-      return broadcast("updatePlayer", self.state);
+      if (msg.speed) {
+        self.state.speed = msg.speed;
+      }
+      if (msg.angle) {
+        self.state.angle = msg.angle;
+      }
+      return broadcast("syncPlayer", self.state);
     });
     return client.on("disconnect", function() {
       var index;

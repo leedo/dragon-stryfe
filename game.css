@@ -3,13 +3,21 @@ div.player.self {
 }
 
 div.player {
+  border-bottom: 3px solid red;
   position: absolute;
   left: 0;
   top: 0;
   width: 8px;
   height: 8px;
-  border-radius: 4px;
   background: #ccc;
+}
+
+div.player span.label {
+  position: absolute;
+  bottom: -15px;
+  height: 10px;
+  color: #ccc;
+  font-size: 10px;
 }
 
 body {
