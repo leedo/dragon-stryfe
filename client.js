@@ -59,6 +59,8 @@
       this.board.height = document.height;
       this.center = [this.board.width / 2, this.board.height / 2];
       this.context = this.board.getContext("2d");
+      this.is_drawing;
+      this.draw_buf = [];
       this.socket = this.connect();
       setInterval((__bind(function() {
         return this.gameTick();
@@ -103,6 +105,26 @@
       }, this)), 100);
     };
     Universe.prototype.enableControls = function() {
+      this.board.addEventListener("mousedown", __bind(function(e) {
+        if (e.target !== this.board) {
+          return;
+        }
+        this.is_drawing = true;
+        return this.draw_buf = [];
+      }, this));
+      this.board.addEventListener("mousemove", __bind(function(e) {
+        if (!this.is_drawing) {
+          return;
+        }
+        return this.draw_buf.push(this.coordToPos(e.clientX, e.clientY));
+      }, this));
+      this.board.addEventListener("mouseup", __bind(function(e) {
+        if (!this.is_drawing) {
+          return;
+        }
+        this.is_drawing = false;
+        return console.log(this.draw_buf);
+      }, this));
       document.addEventListener("keyup", __bind(function(e) {
         switch (e.keyCode) {
           case 87:

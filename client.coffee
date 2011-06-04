@@ -46,6 +46,9 @@ class Universe
     @center = [ @board.width / 2, @board.height / 2]
     @context = @board.getContext "2d"
 
+    @is_drawing
+    @draw_buf = []
+
     @socket = @connect()
 
     setInterval (=> @gameTick()), 10
@@ -78,6 +81,21 @@ class Universe
     setInterval (=> @syncSelf()), 100
 
   enableControls: ->
+
+    # capture points into @draw_buf if someone clicks
+    # on their own ship
+    @board.addEventListener "mousedown", (e) =>
+      return unless e.target == @board
+      @is_drawing = true
+      @draw_buf = []
+    @board.addEventListener "mousemove", (e) =>
+      return unless @is_drawing
+      @draw_buf.push @coordToPos(e.clientX, e.clientY)
+    @board.addEventListener "mouseup", (e) =>
+      return unless @is_drawing
+      @is_drawing = false
+      console.log @draw_buf
+
     document.addEventListener "keyup", (e) =>
       switch e.keyCode
         when 87
