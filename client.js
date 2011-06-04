@@ -184,7 +184,7 @@
     };
     Universe.prototype.connect = function() {
       var socket;
-      socket = new io.Socket("127.0.0.1");
+      socket = new io.Socket(window.location.hostname);
       socket.connect();
       socket.on('message', __bind(function(msg) {
         var req;

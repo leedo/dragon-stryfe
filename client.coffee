@@ -140,7 +140,7 @@ class Universe
     player.name = state.name
 
   connect: ->
-    socket = new io.Socket "127.0.0.1"
+    socket = new io.Socket window.location.hostname
     socket.connect()
     socket.on 'message', (msg) =>
       req = JSON.parse msg
