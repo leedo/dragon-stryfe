@@ -5,6 +5,7 @@ class Player
     @speed = opts.speed || 0
     @angle = opts.angle || 0
     @id = opts.id
+    @name = opts.name || "unknown"
 
   gameTick: ->
     scale_y = -Math.cos @angle
@@ -67,7 +68,8 @@ class Universe
       x: @self.x,
       y: @self.y,
       speed: @self.speed,
-      angle: @self.angle
+      angle: @self.angle,
+      name: @self.name
 
   tickPlayer: (player) ->
     player.gameTick()
@@ -75,7 +77,9 @@ class Universe
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
+    state.name = prompt "What is your dragon's name?"
     @self = new Self state
+    @syncSelf() # sync right away to update our name
     @drawPlayer @self
     @enableControls()
     setInterval (=> @syncSelf()), 100
@@ -133,6 +137,7 @@ class Universe
     player.angle = state.angle
     player.x = state.x
     player.y = state.y
+    player.name = state.name
 
   connect: ->
     socket = new io.Socket "127.0.0.1"
@@ -144,14 +149,18 @@ class Universe
 
   drawPlayer: (player) ->
     [x, y] = @coordToPos player.x, player.y
+
+
     @context.save()
     @context.translate x, y
-    @context.rotate player.angle
     @context.translate -4, -3
     @context.fillStyle = "#fff"
-    @context.fillRect 0, 0, 8, 8
+    @context.fillText player.name, -4, -15
+    @context.rotate player.angle
+    @context.fillStyle = "#fff"
+    @context.fillRect -4, -3, 8, 8
     @context.fillStyle = "red"
-    @context.fillRect 0, 0+8, 8, 2
+    @context.fillRect -4, 5, 8, 2
     @context.restore()
 
 document.addEventListener "DOMContentLoaded", -> universe = new Universe()

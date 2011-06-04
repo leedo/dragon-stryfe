@@ -15,6 +15,7 @@
       this.speed = opts.speed || 0;
       this.angle = opts.angle || 0;
       this.id = opts.id;
+      this.name = opts.name || "unknown";
     }
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
@@ -88,7 +89,8 @@
         x: this.self.x,
         y: this.self.y,
         speed: this.self.speed,
-        angle: this.self.angle
+        angle: this.self.angle,
+        name: this.self.name
       });
     };
     Universe.prototype.tickPlayer = function(player) {
@@ -97,7 +99,9 @@
     };
     Universe.prototype.initSelf = function(state) {
       console.log("init self with id " + state.id);
+      state.name = prompt("What is your dragon's name?");
       this.self = new Self(state);
+      this.syncSelf();
       this.drawPlayer(this.self);
       this.enableControls();
       return setInterval((__bind(function() {
@@ -175,7 +179,8 @@
       player.speed = state.speed;
       player.angle = state.angle;
       player.x = state.x;
-      return player.y = state.y;
+      player.y = state.y;
+      return player.name = state.name;
     };
     Universe.prototype.connect = function() {
       var socket;
@@ -193,12 +198,14 @@
       _ref = this.coordToPos(player.x, player.y), x = _ref[0], y = _ref[1];
       this.context.save();
       this.context.translate(x, y);
-      this.context.rotate(player.angle);
       this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
-      this.context.fillRect(0, 0, 8, 8);
+      this.context.fillText(player.name, -4, -15);
+      this.context.rotate(player.angle);
+      this.context.fillStyle = "#fff";
+      this.context.fillRect(-4, -3, 8, 8);
       this.context.fillStyle = "red";
-      this.context.fillRect(0, 0 + 8, 8, 2);
+      this.context.fillRect(-4, 5, 8, 2);
       return this.context.restore();
     };
     return Universe;
