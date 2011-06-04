@@ -175,6 +175,7 @@
       this.context.save();
       this.context.translate(x, y);
       this.context.rotate(player.angle);
+      this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
       this.context.fillRect(0, 0, 8, 8);
       this.context.fillStyle = "red";

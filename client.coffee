@@ -132,6 +132,7 @@ class Universe
     @context.save()
     @context.translate x, y
     @context.rotate player.angle
+    @context.translate -4, -3
     @context.fillStyle = "#fff"
     @context.fillRect 0, 0, 8, 8
     @context.fillStyle = "red"
