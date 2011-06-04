@@ -5,33 +5,14 @@ class Player
     @speed = opts.speed || 0
     @angle = opts.angle || 0
     @id = opts.id
-    @elem = @createShip()
-
-  createShip: ->
-    elem = document.createElement "DIV"
-    label = document.createElement "SPAN"
-    label.className = "label"
-    label.innerHTML = @id
-    elem.appendChild label
-    elem.id = "player-#{@id}"
-    elem.className = "player"
-    elem.style.left = @x+"px"
-    elem.style.top = @y+"px"
-    elem
 
   gameTick: ->
-    @elem.style.webkitTransform = "rotate(#{@angle}rad)"
-
     scale_y = -Math.cos @angle
     scale_x = Math.sin @angle
     velocity_x = @speed * scale_x
     velocity_y = @speed * scale_y
     @x -= velocity_x
     @y -= velocity_y
-
-  moveTo: (x, y) ->
-    @elem.style.left = x+"px"
-    @elem.style.top = y+"px"
 
 class Self extends Player
   constructor: ->
@@ -54,23 +35,20 @@ class Self extends Player
     @handleInput()
     super
 
-  createShip: ->
-    elem = super
-    elem.className = "player self"
-    elem
-
 class Universe
   constructor: ->
     @self
     @players = {}
-    @board = document.getElementById("board")
-    @width = @board.scrollWidth
-    @height = @board.scrollHeight
-    @center = [ @width / 2, @height / 2]
+
+    @board = document.getElementById "universe"
+    @board.width = document.width
+    @board.height = document.height
+    @center = [ @board.width / 2, @board.height / 2]
+    @context = @board.getContext "2d"
+
     @socket = @connect()
 
     setInterval (=> @gameTick()), 10
-    setInterval (=> @syncSelf()), 100
 
   coordToPos: (x, y) ->
     return [@center[0] - x, @center[1] - y]
@@ -79,6 +57,7 @@ class Universe
     return [x - @center[0], @center[1] - y]
 
   gameTick: ->
+    @board.width = @board.width
     @tickPlayer @self if @self
     for id, player of @players
       @tickPlayer player
@@ -92,14 +71,14 @@ class Universe
 
   tickPlayer: (player) ->
     player.gameTick()
-    [x, y] = @coordToPos(player.x, player.y)
-    player.moveTo(x, y)
+    @drawPlayer player
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
     @self = new Self state
-    @board.appendChild @self.elem
+    @drawPlayer @self
     @enableControls()
+    setInterval (=> @syncSelf()), 100
 
   enableControls: ->
     document.addEventListener "keyup", (e) =>
@@ -121,23 +100,18 @@ class Universe
 
   removePlayer: (id) ->
     console.log "remove player #{id}"
-    player = @players[id]
-    if player
-      elem = player.elem
-      elem.parentNode.removeChild elem
     delete @players[id]
 
   addPlayer: (state) ->
     console.log "add player #{state.id}"
     player = new Player(state)
-    @board.appendChild player.elem
+    @drawPlayer player
     @players[player.id] = player
 
   addPlayers: (new_players) ->
     @addPlayer(player) for player in new_players
 
   syncPlayer: (state) ->
-    console.log "syncing player #{state.id}"
     player = @players[state.id]
     return unless player # don't sync our self
     player.speed = state.speed
@@ -152,5 +126,16 @@ class Universe
       req = JSON.parse msg
       @[ req.action ](req.data)
     socket
+
+  drawPlayer: (player) ->
+    [x, y] = @coordToPos player.x, player.y
+    @context.save()
+    @context.translate x, y
+    @context.rotate player.angle
+    @context.fillStyle = "#fff"
+    @context.fillRect 0, 0, 8, 8
+    @context.fillStyle = "red"
+    @context.fillRect 0, 0+8, 8, 2
+    @context.restore()
 
 document.addEventListener "DOMContentLoaded", -> universe = new Universe()

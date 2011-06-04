@@ -15,34 +15,15 @@
       this.speed = opts.speed || 0;
       this.angle = opts.angle || 0;
       this.id = opts.id;
-      this.elem = this.createShip();
     }
-    Player.prototype.createShip = function() {
-      var elem, label;
-      elem = document.createElement("DIV");
-      label = document.createElement("SPAN");
-      label.className = "label";
-      label.innerHTML = this.id;
-      elem.appendChild(label);
-      elem.id = "player-" + this.id;
-      elem.className = "player";
-      elem.style.left = this.x + "px";
-      elem.style.top = this.y + "px";
-      return elem;
-    };
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
-      this.elem.style.webkitTransform = "rotate(" + this.angle + "rad)";
       scale_y = -Math.cos(this.angle);
       scale_x = Math.sin(this.angle);
       velocity_x = this.speed * scale_x;
       velocity_y = this.speed * scale_y;
       this.x -= velocity_x;
       return this.y -= velocity_y;
-    };
-    Player.prototype.moveTo = function(x, y) {
-      this.elem.style.left = x + "px";
-      return this.elem.style.top = y + "px";
     };
     return Player;
   })();
@@ -67,29 +48,21 @@
       this.handleInput();
       return Self.__super__.gameTick.apply(this, arguments);
     };
-    Self.prototype.createShip = function() {
-      var elem;
-      elem = Self.__super__.createShip.apply(this, arguments);
-      elem.className = "player self";
-      return elem;
-    };
     return Self;
   })();
   Universe = (function() {
     function Universe() {
       this.self;
       this.players = {};
-      this.board = document.getElementById("board");
-      this.width = this.board.scrollWidth;
-      this.height = this.board.scrollHeight;
-      this.center = [this.width / 2, this.height / 2];
+      this.board = document.getElementById("universe");
+      this.board.width = document.width;
+      this.board.height = document.height;
+      this.center = [this.board.width / 2, this.board.height / 2];
+      this.context = this.board.getContext("2d");
       this.socket = this.connect();
       setInterval((__bind(function() {
         return this.gameTick();
       }, this)), 10);
-      setInterval((__bind(function() {
-        return this.syncSelf();
-      }, this)), 100);
     }
     Universe.prototype.coordToPos = function(x, y) {
       return [this.center[0] - x, this.center[1] - y];
@@ -99,6 +72,7 @@
     };
     Universe.prototype.gameTick = function() {
       var id, player, _ref, _results;
+      this.board.width = this.board.width;
       if (this.self) {
         this.tickPlayer(this.self);
       }
@@ -119,16 +93,17 @@
       });
     };
     Universe.prototype.tickPlayer = function(player) {
-      var x, y, _ref;
       player.gameTick();
-      _ref = this.coordToPos(player.x, player.y), x = _ref[0], y = _ref[1];
-      return player.moveTo(x, y);
+      return this.drawPlayer(player);
     };
     Universe.prototype.initSelf = function(state) {
       console.log("init self with id " + state.id);
       this.self = new Self(state);
-      this.board.appendChild(this.self.elem);
-      return this.enableControls();
+      this.drawPlayer(this.self);
+      this.enableControls();
+      return setInterval((__bind(function() {
+        return this.syncSelf();
+      }, this)), 100);
     };
     Universe.prototype.enableControls = function() {
       document.addEventListener("keyup", __bind(function(e) {
@@ -153,20 +128,14 @@
       }, this));
     };
     Universe.prototype.removePlayer = function(id) {
-      var elem, player;
       console.log("remove player " + id);
-      player = this.players[id];
-      if (player) {
-        elem = player.elem;
-        elem.parentNode.removeChild(elem);
-      }
       return delete this.players[id];
     };
     Universe.prototype.addPlayer = function(state) {
       var player;
       console.log("add player " + state.id);
       player = new Player(state);
-      this.board.appendChild(player.elem);
+      this.drawPlayer(player);
       return this.players[player.id] = player;
     };
     Universe.prototype.addPlayers = function(new_players) {
@@ -180,7 +149,6 @@
     };
     Universe.prototype.syncPlayer = function(state) {
       var player;
-      console.log("syncing player " + state.id);
       player = this.players[state.id];
       if (!player) {
         return;
@@ -200,6 +168,18 @@
         return this[req.action](req.data);
       }, this));
       return socket;
+    };
+    Universe.prototype.drawPlayer = function(player) {
+      var x, y, _ref;
+      _ref = this.coordToPos(player.x, player.y), x = _ref[0], y = _ref[1];
+      this.context.save();
+      this.context.translate(x, y);
+      this.context.rotate(player.angle);
+      this.context.fillStyle = "#fff";
+      this.context.fillRect(0, 0, 8, 8);
+      this.context.fillStyle = "red";
+      this.context.fillRect(0, 0 + 8, 8, 2);
+      return this.context.restore();
     };
     return Universe;
   })();
