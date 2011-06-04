@@ -22,13 +22,11 @@ app.get /^\/(.+\.(html|css|js))/, (req, res) ->
       res.send body, 'Content-Type': type_map[ext], 200
 
 broadcast = (action, data) ->
-  console.log "broadcasting to "+players.length+" players"
-  send(player, action, data) for player in players
+  body = JSON.stringify {action: action, data: data}
+  player.client.send body for player in players
 
 send = (player, action, data) ->
-  body = JSON.stringify
-    action: action
-    data: data
+  body = JSON.stringify {action: action, data: data}
   player.client.send body
 
 socket.on "connection", (client) ->
@@ -52,13 +50,11 @@ socket.on "connection", (client) ->
     # update our state and broadcast it
     self.state.x = msg.x if msg.x
     self.state.y = msg.y if msg.y
-    console.log "got position update for client #{self.state.id}"
     broadcast("updatePlayer", self.state)
 
   client.on "disconnect", ->
     index = players.indexOf self
     return if index == -1
-    console.log "removing index "+players.indexOf self
     players.splice index, 1
     broadcast("removePlayer", self.state.id)
 

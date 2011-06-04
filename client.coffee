@@ -14,6 +14,8 @@ class Player
     elem
 
   moveShip: (x, y) ->
+    @x = x
+    @y = y
     @elem.style.left = x+"px"
     @elem.style.top = y+"px"
 
@@ -29,16 +31,21 @@ class Universe
     @players = {}
     @board = document.getElementById("board")
     @socket = @connect()
-    setInterval =>
-      console.log "players", @players
-      console.log "self", @self
-    , 10000
-    @board.addEventListener "click", (e) =>
-      return unless @self
-      @self.moveShip e.x, e.y
+
+    document.addEventListener "keypress", (e) =>
+      switch e.keyCode
+        when 119
+          @self.moveShip @self.x, @self.y - 3
+        when 115
+          @self.moveShip @self.x, @self.y + 3
+        when 97
+          @self.moveShip @self.x - 3, @self.y
+        when 100
+          @self.moveShip @self.x + 3, @self.y
+
       @socket.send
-        x: e.x,
-        y: e.y
+        x: @self.x,
+        y: @self.y
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"

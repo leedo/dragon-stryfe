@@ -29,12 +29,15 @@
     });
   });
   broadcast = function(action, data) {
-    var player, _i, _len, _results;
-    console.log("broadcasting to " + players.length + " players");
+    var body, player, _i, _len, _results;
+    body = JSON.stringify({
+      action: action,
+      data: data
+    });
     _results = [];
     for (_i = 0, _len = players.length; _i < _len; _i++) {
       player = players[_i];
-      _results.push(send(player, action, data));
+      _results.push(player.client.send(body));
     }
     return _results;
   };
@@ -75,7 +78,6 @@
       if (msg.y) {
         self.state.y = msg.y;
       }
-      console.log("got position update for client " + self.state.id);
       return broadcast("updatePlayer", self.state);
     });
     return client.on("disconnect", function() {
@@ -84,7 +86,6 @@
       if (index === -1) {
         return;
       }
-      console.log("removing index " + players.indexOf(self));
       players.splice(index, 1);
       return broadcast("removePlayer", self.state.id);
     });

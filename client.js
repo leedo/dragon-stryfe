@@ -25,6 +25,8 @@
       return elem;
     };
     Player.prototype.moveShip = function(x, y) {
+      this.x = x;
+      this.y = y;
       this.elem.style.left = x + "px";
       return this.elem.style.top = y + "px";
     };
@@ -49,18 +51,23 @@
       this.players = {};
       this.board = document.getElementById("board");
       this.socket = this.connect();
-      setInterval(__bind(function() {
-        console.log("players", this.players);
-        return console.log("self", this.self);
-      }, this), 10000);
-      this.board.addEventListener("click", __bind(function(e) {
-        if (!this.self) {
-          return;
+      document.addEventListener("keypress", __bind(function(e) {
+        switch (e.keyCode) {
+          case 119:
+            this.self.moveShip(this.self.x, this.self.y - 3);
+            break;
+          case 115:
+            this.self.moveShip(this.self.x, this.self.y + 3);
+            break;
+          case 97:
+            this.self.moveShip(this.self.x - 3, this.self.y);
+            break;
+          case 100:
+            this.self.moveShip(this.self.x + 3, this.self.y);
         }
-        this.self.moveShip(e.x, e.y);
         return this.socket.send({
-          x: e.x,
-          y: e.y
+          x: this.self.x,
+          y: this.self.y
         });
       }, this));
     }
