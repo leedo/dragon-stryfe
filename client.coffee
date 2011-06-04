@@ -53,9 +53,6 @@ class Universe
   coordToPos: (x, y) ->
     return [@center[0] - x, @center[1] - y]
 
-  posToCoord: (x, y) ->
-    return [x - @center[0], @center[1] - y]
-
   gameTick: ->
     @board.width = @board.width
     @tickPlayer @self if @self

@@ -67,9 +67,6 @@
     Universe.prototype.coordToPos = function(x, y) {
       return [this.center[0] - x, this.center[1] - y];
     };
-    Universe.prototype.posToCoord = function(x, y) {
-      return [x - this.center[0], this.center[1] - y];
-    };
     Universe.prototype.gameTick = function() {
       var id, player, _ref, _results;
       this.board.width = this.board.width;
