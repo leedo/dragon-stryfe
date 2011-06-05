@@ -63,9 +63,6 @@
       this.is_drawing;
       this.draw_buf = [];
       this.socket = this.connect();
-      setInterval((__bind(function() {
-        return this.gameTick();
-      }, this)), 10);
     }
     Universe.prototype.coordToPos = function(x, y) {
       return [this.center[0] - x, this.center[1] - y];
@@ -77,6 +74,7 @@
       if (this.self) {
         this.tickPlayer(this.self);
       }
+      this.drawCurrentCoords();
       if (this.self.x < -this.board.width / 2 || this.self.y < -this.board.height / 2 || this.self.x > this.board.width / 2 || this.self.y > this.board.height / 2) {
         this.self.angle += 3.141596;
       }
@@ -87,6 +85,11 @@
         _results.push(this.tickPlayer(player));
       }
       return _results;
+    };
+    Universe.prototype.drawCurrentCoords = function() {
+      this.context.fillStyle = "#fff";
+      this.context.fillText("x: " + (parseInt(this.self.x)), 10, 10);
+      return this.context.fillText("y: " + (parseInt(this.self.y)), 10, 20);
     };
     Universe.prototype.syncSelf = function() {
       return this.socket.send({
@@ -108,9 +111,12 @@
       this.syncSelf();
       this.drawPlayer(this.self);
       this.enableControls();
-      return setInterval((__bind(function() {
+      setInterval((__bind(function() {
         return this.syncSelf();
       }, this)), 100);
+      return setInterval((__bind(function() {
+        return this.gameTick();
+      }, this)), 10);
     };
     Universe.prototype.enableControls = function() {
       this.board.addEventListener("mousedown", __bind(function(e) {

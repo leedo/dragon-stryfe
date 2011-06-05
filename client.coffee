@@ -53,8 +53,6 @@ class Universe
 
     @socket = @connect()
 
-    setInterval (=> @gameTick()), 10
-
   coordToPos: (x, y) ->
     return [@center[0] - x, @center[1] - y]
 
@@ -62,11 +60,17 @@ class Universe
     @board.width = @board.width
     @context.save()
     @tickPlayer @self if @self
+    @drawCurrentCoords()
     # checks to keep people in the visible area
     if  @self.x < -@board.width / 2  || @self.y < -@board.height/2 || @self.x > @board.width/2 || @self.y > @board.height/2
         @self.angle += 3.141596
     for id, player of @players
       @tickPlayer player
+
+  drawCurrentCoords: ->
+    @context.fillStyle = "#fff"
+    @context.fillText "x: #{parseInt @self.x}", 10, 10
+    @context.fillText "y: #{parseInt @self.y}", 10, 20
 
   syncSelf: ->
     @socket.send
@@ -87,7 +91,9 @@ class Universe
     @syncSelf() # sync right away to update our name
     @drawPlayer @self
     @enableControls()
+
     setInterval (=> @syncSelf()), 100
+    setInterval (=> @gameTick()), 10
 
   enableControls: ->
 
