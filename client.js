@@ -80,7 +80,7 @@
       this.context = this.board.getContext("2d");
       this.is_drawing;
       this.draw_buf = [];
-      this.socket = this.connect();
+      this.connect();
     }
     Universe.prototype.gameTick = function() {
       var id, player, _ref;
@@ -102,8 +102,11 @@
         this.self.angle -= Math.PI * 2.0;
       }
       if (this.self.angle < 0.0) {
-        return this.self.angle += Math.PI * 2.0;
+        this.self.angle += Math.PI * 2.0;
       }
+      return setTimeout((__bind(function() {
+        return this.gameTick();
+      }, this)), 40);
     };
     Universe.prototype.drawInfo = function() {
       this.context.fillStyle = "#fff";
@@ -113,7 +116,10 @@
     };
     Universe.prototype.syncSelf = function() {
       this.self.updateTrail();
-      return this.socket.send(this.self.serialized());
+      this.socket.send(this.self.serialized());
+      return setTimeout((__bind(function() {
+        return this.syncSelf();
+      }, this)), 100);
     };
     Universe.prototype.tickPlayer = function(player) {
       player.gameTick();
@@ -125,15 +131,10 @@
       state.y = this.board.height / 2;
       state.name = prompt("What is your dragon's name?");
       this.self = new Self(state);
-      this.syncSelf();
       this.drawPlayer(this.self);
       this.enableControls();
-      setInterval((__bind(function() {
-        return this.syncSelf();
-      }, this)), 100);
-      return setInterval((__bind(function() {
-        return this.gameTick();
-      }, this)), 40);
+      this.gameTick();
+      return this.syncSelf();
     };
     Universe.prototype.enableControls = function() {
       this.board.addEventListener("mousedown", __bind(function(e) {
@@ -142,20 +143,20 @@
         }
         this.is_drawing = true;
         return this.draw_buf = [];
-      }, this));
+      }, this), false);
       this.board.addEventListener("mousemove", __bind(function(e) {
         if (!this.is_drawing) {
           return;
         }
         return this.draw_buf.push(e.clientX, e.clientY);
-      }, this));
+      }, this), false);
       this.board.addEventListener("mouseup", __bind(function(e) {
         if (!this.is_drawing) {
           return;
         }
         this.is_drawing = false;
         return console.log(this.draw_buf);
-      }, this));
+      }, this), false);
       document.addEventListener("keyup", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
@@ -165,7 +166,7 @@
           case 65:
             return this.self.turn = 0;
         }
-      }, this));
+      }, this), false);
       return document.addEventListener("keydown", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
@@ -175,7 +176,7 @@
           case 65:
             return this.self.turn = 1;
         }
-      }, this));
+      }, this), false);
     };
     Universe.prototype.removePlayer = function(id) {
       console.log("remove player " + id);
@@ -212,15 +213,13 @@
       return _results;
     };
     Universe.prototype.connect = function() {
-      var socket;
-      socket = new io.Socket(window.location.hostname);
-      socket.connect();
-      socket.on('message', __bind(function(msg) {
+      this.socket = new io.Socket(window.location.hostname);
+      this.socket.connect();
+      return this.socket.on('message', __bind(function(msg) {
         var req;
         req = JSON.parse(msg);
         return this[req.action](req.data);
       }, this));
-      return socket;
     };
     Universe.prototype.drawTrail = function(player) {
       var coord, opacity, x, y, _i, _len, _ref, _results;
@@ -251,8 +250,8 @@
     };
     return Universe;
   })();
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", (function() {
     var universe;
     return universe = new Universe();
-  });
+  }), false);
 }).call(this);

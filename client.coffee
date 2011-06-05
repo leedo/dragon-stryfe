@@ -64,7 +64,7 @@ class Universe
     @is_drawing
     @draw_buf = []
 
-    @socket = @connect()
+    @connect()
 
   gameTick: ->
     @board.width = @board.width
@@ -76,13 +76,14 @@ class Universe
     # checks to keep people in the visible area
     if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
         @self.angle += Math.PI
-    
+
     # constrain angle to the range [0 .. 2*PI]
     if @self.angle > Math.PI * 2.0
        @self.angle -= Math.PI * 2.0
     if @self.angle < 0.0
        @self.angle += Math.PI * 2.0
 
+    setTimeout (=> @gameTick()), 40
 
   drawInfo: ->
     @context.fillStyle = "#fff"
@@ -93,6 +94,7 @@ class Universe
   syncSelf: ->
     @self.updateTrail()
     @socket.send @self.serialized()
+    setTimeout (=> @syncSelf()), 100
 
   tickPlayer: (player) ->
     player.gameTick()
@@ -100,33 +102,36 @@ class Universe
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
-    # just override the provided 0,0 default center
+
+    # just override the default with center
     state.x = @board.width / 2
     state.y = @board.height / 2
     state.name = prompt "What is your dragon's name?"
+
     @self = new Self state
-    @syncSelf() # sync right away to update our name
     @drawPlayer @self
     @enableControls()
 
-    setInterval (=> @syncSelf()), 100
-    setInterval (=> @gameTick()), 40
+    @gameTick()
+    @syncSelf()
 
   enableControls: ->
-
     # capture points into @draw_buf if someone clicks
     # on their own ship
     @board.addEventListener "mousedown", (e) =>
       return unless e.target == @board
       @is_drawing = true
       @draw_buf = []
+    , false
     @board.addEventListener "mousemove", (e) =>
       return unless @is_drawing
       @draw_buf.push e.clientX, e.clientY
+    , false
     @board.addEventListener "mouseup", (e) =>
       return unless @is_drawing
       @is_drawing = false
       console.log @draw_buf
+    , false
 
     document.addEventListener "keyup", (e) =>
       switch e.keyCode
@@ -136,6 +141,7 @@ class Universe
           @self.turn = 0
         when 65
           @self.turn = 0
+    , false
     document.addEventListener "keydown", (e) =>
       switch e.keyCode
         when 87
@@ -144,6 +150,7 @@ class Universe
           @self.turn = -1
         when 65
           @self.turn = 1
+    , false
 
   removePlayer: (id) ->
     console.log "remove player #{id}"
@@ -165,12 +172,11 @@ class Universe
       player[field] = state[field]
 
   connect: ->
-    socket = new io.Socket window.location.hostname
-    socket.connect()
-    socket.on 'message', (msg) =>
+    @socket = new io.Socket window.location.hostname
+    @socket.connect()
+    @socket.on 'message', (msg) =>
       req = JSON.parse msg
       @[ req.action ](req.data)
-    socket
 
   drawTrail: (player) ->
     opacity = 0.3
@@ -198,4 +204,4 @@ class Universe
 
 
 
-document.addEventListener "DOMContentLoaded", -> universe = new Universe()
+document.addEventListener "DOMContentLoaded", (-> universe = new Universe()), false
