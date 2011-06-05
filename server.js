@@ -60,7 +60,8 @@
         angle: 0,
         x: 0,
         y: 0,
-        trail: []
+        trail: [],
+        thrusting: false
       }
     };
     send(self, "initSelf", self.state);
@@ -77,7 +78,7 @@
     players.push(self);
     client.on("message", function(msg) {
       var field, _i, _len, _ref;
-      _ref = ["name", "speed", "angle", "x", "y", "trail", "thrust"];
+      _ref = ["name", "speed", "angle", "x", "y", "trail", "thrusting"];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         field = _ref[_i];
         self.state[field] = msg[field];

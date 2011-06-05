@@ -10,12 +10,13 @@
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   Player = (function() {
     function Player(opts) {
-      this.sync = ["name", "speed", "angle", "x", "y", "trail", "thrust"];
+      this.sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"];
       this.x = opts.x || 0;
       this.y = opts.y || 0;
       this.speed = opts.speed || 0;
       this.angle = opts.angle || 0;
       this.id = opts.id;
+      this.thrusting = opts.thrusting || false;
       this.name = opts.name || "unknown";
       this.trail = [];
     }
@@ -39,7 +40,7 @@
       return this.y -= velocity_y;
     };
     Player.prototype.updateTrail = function() {
-      this.trail.unshift(this.thrust ? [this.x, this.y] : null);
+      this.trail.unshift(this.thrusting ? [this.x, this.y] : null);
       if (this.trail.length > 15) {
         return this.trail.pop();
       }
@@ -50,14 +51,14 @@
     __extends(Self, Player);
     function Self() {
       this.turn = 0;
-      this.thrust = false;
+      this.thrusting = false;
       Self.__super__.constructor.apply(this, arguments);
     }
     Self.prototype.handleInput = function() {
       if (this.turn !== 0) {
         this.angle += this.turn * 0.05;
       }
-      if (this.thrust && this.speed < 8) {
+      if (this.thrusting && this.speed < 8) {
         return this.speed += 0.4;
       } else if (this.speed > 0.4) {
         return this.speed -= 0.1;
@@ -160,7 +161,7 @@
       document.addEventListener("keyup", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
-            return this.self.thrust = false;
+            return this.self.thrusting = false;
           case 68:
             return this.self.turn = 0;
           case 65:
@@ -170,7 +171,7 @@
       return document.addEventListener("keydown", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
-            return this.self.thrust = true;
+            return this.self.thrusting = true;
           case 68:
             return this.self.turn = -1;
           case 65:
@@ -244,7 +245,7 @@
       this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
       this.context.fillRect(0, 0, 8, 8);
-      this.context.fillStyle = player.thrust ? "red" : "rgba(255,255,255,0.5)";
+      this.context.fillStyle = player.thrusting ? "red" : "rgba(255,255,255,0.5)";
       this.context.fillRect(0, 8, 8, 2);
       return this.context.restore();
     };

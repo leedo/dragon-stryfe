@@ -1,11 +1,12 @@
 class Player
   constructor: (opts) ->
-    @sync = ["name", "speed", "angle", "x", "y", "trail", "thrust"]
+    @sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"]
     @x = opts.x || 0
     @y = opts.y || 0
     @speed = opts.speed || 0
     @angle = opts.angle || 0
     @id = opts.id
+    @thrusting = opts.thrusting || false
     @name = opts.name || "unknown"
     @trail = []
 
@@ -24,14 +25,14 @@ class Player
     @y -= velocity_y
 
   updateTrail: ->
-    # stick an empty element in if no thrust on
-    @trail.unshift if @thrust then [@x, @y] else null
+    # stick an empty element in if no thrusting on
+    @trail.unshift if @thrusting then [@x, @y] else null
     @trail.pop() if @trail.length > 15
 
 class Self extends Player
   constructor: ->
     @turn = 0
-    @thrust = false
+    @thrusting = false
     super
 
   handleInput: ->
@@ -39,8 +40,8 @@ class Self extends Player
     if @turn != 0
       @angle += @turn * 0.05
 
-    # update our speed if thrust is on
-    if @thrust and @speed < 8
+    # update our speed if thrusting is on
+    if @thrusting and @speed < 8
       @speed += 0.4
     else if @speed > 0.4
       @speed -= 0.1
@@ -136,7 +137,7 @@ class Universe
     document.addEventListener "keyup", (e) =>
       switch e.keyCode
         when 87
-          @self.thrust = false
+          @self.thrusting = false
         when 68
           @self.turn = 0
         when 65
@@ -145,7 +146,7 @@ class Universe
     document.addEventListener "keydown", (e) =>
       switch e.keyCode
         when 87
-          @self.thrust = true
+          @self.thrusting = true
         when 68
           @self.turn = -1
         when 65
@@ -197,7 +198,7 @@ class Universe
     @context.translate -4, -3
     @context.fillStyle = "#fff"
     @context.fillRect 0, 0, 8, 8
-    @context.fillStyle = if player.thrust then "red" else "rgba(255,255,255,0.5)"
+    @context.fillStyle = if player.thrusting then "red" else "rgba(255,255,255,0.5)"
     @context.fillRect 0, 8, 8, 2
     @context.restore()
 
