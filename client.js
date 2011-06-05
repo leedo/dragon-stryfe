@@ -39,10 +39,10 @@
       if (this.turn !== 0) {
         this.angle += this.turn * 0.05;
       }
-      if (this.thrust && this.speed < 2) {
-        return this.speed += 0.1;
-      } else if (this.speed > 0.1) {
-        return this.speed -= 0.025;
+      if (this.thrust && this.speed < 4) {
+        return this.speed += 0.2;
+      } else if (this.speed > 0.2) {
+        return this.speed -= 0.05;
       }
     };
     Self.prototype.gameTick = function() {
@@ -115,7 +115,7 @@
       }, this)), 100);
       return setInterval((__bind(function() {
         return this.gameTick();
-      }, this)), 10);
+      }, this)), 20);
     };
     Universe.prototype.enableControls = function() {
       this.board.addEventListener("mousedown", __bind(function(e) {

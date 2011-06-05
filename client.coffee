@@ -27,10 +27,10 @@ class Self extends Player
       @angle += @turn * 0.05
 
     # update our speed if thrust is on
-    if @thrust and @speed < 2
-      @speed += 0.1
-    else if @speed > 0.1
-      @speed -= 0.025
+    if @thrust and @speed < 4
+      @speed += 0.2
+    else if @speed > 0.2
+      @speed -= 0.05
 
   gameTick: ->
     @handleInput()
@@ -93,7 +93,7 @@ class Universe
     @enableControls()
 
     setInterval (=> @syncSelf()), 100
-    setInterval (=> @gameTick()), 10
+    setInterval (=> @gameTick()), 20
 
   enableControls: ->
 
