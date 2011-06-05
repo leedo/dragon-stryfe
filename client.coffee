@@ -59,6 +59,7 @@ class Universe
 
   gameTick: ->
     @board.width = @board.width
+    @context.save()
     @tickPlayer @self if @self
     for id, player of @players
       @tickPlayer player
@@ -151,7 +152,6 @@ class Universe
     [x, y] = @coordToPos player.x, player.y
 
 
-    @context.save()
     @context.translate x, y
     @context.translate -4, -3
     @context.fillStyle = "#fff"

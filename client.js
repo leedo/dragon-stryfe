@@ -73,6 +73,7 @@
     Universe.prototype.gameTick = function() {
       var id, player, _ref, _results;
       this.board.width = this.board.width;
+      this.context.save();
       if (this.self) {
         this.tickPlayer(this.self);
       }
@@ -196,7 +197,6 @@
     Universe.prototype.drawPlayer = function(player) {
       var x, y, _ref;
       _ref = this.coordToPos(player.x, player.y), x = _ref[0], y = _ref[1];
-      this.context.save();
       this.context.translate(x, y);
       this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
