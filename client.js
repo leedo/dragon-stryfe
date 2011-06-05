@@ -16,6 +16,7 @@
       this.angle = opts.angle || 0;
       this.id = opts.id;
       this.name = opts.name || "unknown";
+      this.trail = [];
     }
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
@@ -25,6 +26,15 @@
       velocity_y = this.speed * scale_y;
       this.x -= velocity_x;
       return this.y -= velocity_y;
+    };
+    Player.prototype.updateTrail = function() {
+      if (!this.thrust) {
+        return;
+      }
+      this.trail.push([this.x, this.y]);
+      if (this.trail.length > 5) {
+        return this.trail.shift();
+      }
     };
     return Player;
   })();
@@ -55,6 +65,7 @@
     function Universe() {
       this.self;
       this.players = {};
+      this.tick_count = 0;
       this.board = document.getElementById("universe");
       this.board.width = document.width;
       this.board.height = document.height;
@@ -64,23 +75,21 @@
       this.socket = this.connect();
     }
     Universe.prototype.gameTick = function() {
-      var id, player, _ref, _results;
+      var id, player, _ref;
       this.board.width = this.board.width;
       this.context.save();
       if (this.self) {
         this.tickPlayer(this.self);
       }
-      this.drawInfo();
-      if (this.self.x < 0 || this.self.y < 0 || this.self.x > this.board.width || this.self.y > this.board.height) {
-        this.self.angle += Math.PI;
-      }
       _ref = this.players;
-      _results = [];
       for (id in _ref) {
         player = _ref[id];
-        _results.push(this.tickPlayer(player));
+        this.tickPlayer(player);
       }
-      return _results;
+      this.drawInfo();
+      if (this.self.x < 0 || this.self.y < 0 || this.self.x > this.board.width || this.self.y > this.board.height) {
+        return this.self.angle += Math.PI;
+      }
     };
     Universe.prototype.drawInfo = function() {
       this.context.fillStyle = "#fff";
@@ -111,11 +120,25 @@
       this.drawPlayer(this.self);
       this.enableControls();
       setInterval((__bind(function() {
+        return this.updateTrails();
+      }, this)), 200);
+      setInterval((__bind(function() {
         return this.syncSelf();
       }, this)), 100);
       return setInterval((__bind(function() {
         return this.gameTick();
       }, this)), 20);
+    };
+    Universe.prototype.updateTrails = function() {
+      var player, _i, _len, _ref, _results;
+      this.self.updateTrail();
+      _ref = this.players;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        player = _ref[_i];
+        _results.push(player.updateTrail());
+      }
+      return _results;
     };
     Universe.prototype.enableControls = function() {
       this.board.addEventListener("mousedown", __bind(function(e) {
@@ -202,8 +225,21 @@
       }, this));
       return socket;
     };
+    Universe.prototype.drawTrail = function(player) {
+      var coord, opacity, _i, _len, _ref, _results;
+      opacity = 2;
+      _ref = player.trail;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        coord = _ref[_i];
+        this.context.fillStyle = "rgba(255,255,255," + (opacity++ / 10) + ")";
+        _results.push(this.context.fillRect(coord[0], coord[1], 8, 8));
+      }
+      return _results;
+    };
     Universe.prototype.drawPlayer = function(player) {
       var x, y, _ref;
+      this.drawTrail(player);
       _ref = [player.x, player.y], x = _ref[0], y = _ref[1];
       this.context.translate(x, y);
       this.context.fillStyle = "#fff";
@@ -212,7 +248,7 @@
       this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
       this.context.fillRect(0, 0, 8, 8);
-      this.context.fillStyle = "red";
+      this.context.fillStyle = player.thrust ? "red" : "rgba(255,255,255,0.5)";
       this.context.fillRect(0, 8, 8, 2);
       return this.context.restore();
     };

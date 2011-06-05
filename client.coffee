@@ -6,6 +6,7 @@ class Player
     @angle = opts.angle || 0
     @id = opts.id
     @name = opts.name || "unknown"
+    @trail = []
 
   gameTick: ->
     scale_y = Math.cos @angle
@@ -14,6 +15,11 @@ class Player
     velocity_y = @speed * scale_y
     @x -= velocity_x
     @y -= velocity_y
+
+  updateTrail: ->
+    return unless @thrust
+    @trail.push [@x, @y]
+    @trail.shift() if @trail.length > 5
 
 class Self extends Player
   constructor: ->
@@ -41,6 +47,7 @@ class Universe
   constructor: ->
     @self
     @players = {}
+    @tick_count = 0
 
     @board = document.getElementById "universe"
     @board.width = document.width
@@ -56,12 +63,12 @@ class Universe
     @board.width = @board.width
     @context.save()
     @tickPlayer @self if @self
+    @tickPlayer player for id, player of @players
     @drawInfo()
+
     # checks to keep people in the visible area
     if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
         @self.angle += Math.PI
-    for id, player of @players
-      @tickPlayer player
 
   drawInfo: ->
     @context.fillStyle = "#fff"
@@ -92,8 +99,13 @@ class Universe
     @drawPlayer @self
     @enableControls()
 
+    setInterval (=> @updateTrails()), 200
     setInterval (=> @syncSelf()), 100
     setInterval (=> @gameTick()), 20
+
+  updateTrails: ->
+    @self.updateTrail()
+    player.updateTrail() for player in @players
 
   enableControls: ->
 
@@ -158,7 +170,14 @@ class Universe
       @[ req.action ](req.data)
     socket
 
+  drawTrail: (player) ->
+    opacity = 2
+    for coord in player.trail
+      @context.fillStyle = "rgba(255,255,255,#{opacity++ / 10})"
+      @context.fillRect coord[0], coord[1], 8, 8
+
   drawPlayer: (player) ->
+    @drawTrail(player)
     [x, y] = [player.x, player.y]
     @context.translate x, y
     @context.fillStyle = "#fff"
@@ -167,7 +186,7 @@ class Universe
     @context.translate -4, -3
     @context.fillStyle = "#fff"
     @context.fillRect 0, 0, 8, 8
-    @context.fillStyle = "red"
+    @context.fillStyle = if player.thrust then "red" else "rgba(255,255,255,0.5)"
     @context.fillRect 0, 8, 8, 2
     @context.restore()
 
