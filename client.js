@@ -1,5 +1,5 @@
 (function() {
-  var ControlState, Player, Self, Universe, playerTurnRate;
+  var ControlState, Player, Self, Universe, accelRate, coastSpeed, decelRate, maxSpeed, maxThrust, maxTrailLength, playerTurnRate, thrustRegenRate;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -17,6 +17,33 @@
     return ControlState;
   })();
   playerTurnRate = 0.05;
+  maxThrust = 100.0;
+  thrustRegenRate = 0.25;
+  maxTrailLength = 15;
+  maxSpeed = 8;
+  accelRate = 0.4;
+  coastSpeed = 0.4;
+  decelRate = 0.1;
+  ({
+    max: function(a, b) {
+      if (a > b) {
+        return a;
+      }
+      return b;
+    },
+    min: function(a, b) {
+      if (a < b) {
+        return a;
+      }
+      return b;
+    },
+    abs: function(a) {
+      if (a >= 0) {
+        return a;
+      }
+      return -a;
+    }
+  });
   Player = (function() {
     function Player(opts) {
       this.sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"];
@@ -55,7 +82,7 @@
     };
     Player.prototype.updateTrail = function() {
       this.trail.unshift(this.thrusting ? [this.x, this.y] : null);
-      if (this.trail.length > 15) {
+      if (this.trail.length > maxTrailLength) {
         return this.trail.pop();
       }
     };
@@ -66,7 +93,7 @@
     function Self() {
       this.turn = 0;
       this.thrusting = false;
-      this.thrust = 100;
+      this.thrust = maxThrust;
       Self.__super__.constructor.apply(this, arguments);
     }
     Self.prototype.handleInput = function() {
@@ -75,19 +102,23 @@
       } else if (this.controls.dPressed === true && this.controls.aPressed === false) {
         this.angle -= playerTurnRate;
       }
-      if (this.thrusting && this.speed < 8) {
-        return this.speed += 0.4;
-      } else if (this.speed > 0.4) {
-        return this.speed -= 0.1;
+      if (this.thrust && this.controls.wPressed) {
+        this.thrusting = true;
+      }
+      if (this.thrusting && this.speed < maxSpeed) {
+        return this.speed += accelRate;
+      } else if (this.speed > coastSpeed) {
+        return this.speed -= decelRate;
       }
     };
     Self.prototype.gameTick = function() {
       this.handleInput();
       Self.__super__.gameTick.apply(this, arguments);
-      if (this.thrusting && this.thrust > 0) {
+      if (this.thrusting && this.thrust >= 1) {
         return this.thrust--;
       } else {
-        this.thrust += 0.25;
+        this.thrust += thrustRegenRate;
+        this.thrust = max(this.thrust, maxThrust);
         return this.thrusting = false;
       }
     };

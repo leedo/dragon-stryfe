@@ -16,12 +16,20 @@ decelRate = 0.1
 
 # util functions
 max: (a,b) ->
-  if a > b return a
+  if a > b
+    return a
   return b
 
 min: (a,b) ->
-  if a < b return a
+  if a < b
+    return a
   return b
+
+abs: (a) ->
+  if a >= 0
+    return a
+  return -a
+
 
 class Player
   constructor: (opts) ->
