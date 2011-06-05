@@ -198,14 +198,14 @@
       var x, y, _ref;
       _ref = this.coordToPos(player.x, player.y), x = _ref[0], y = _ref[1];
       this.context.translate(x, y);
-      this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
       this.context.fillText(player.name, -4, -15);
       this.context.rotate(player.angle);
+      this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
-      this.context.fillRect(-4, -3, 8, 8);
+      this.context.fillRect(0, 0, 8, 8);
       this.context.fillStyle = "red";
-      this.context.fillRect(-4, 5, 8, 2);
+      this.context.fillRect(0, 8, 8, 2);
       return this.context.restore();
     };
     return Universe;
