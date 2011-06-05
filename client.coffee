@@ -36,6 +36,7 @@ class Self extends Player
     @handleInput()
     super
 
+
 class Universe
   constructor: ->
     @self
@@ -61,6 +62,9 @@ class Universe
     @board.width = @board.width
     @context.save()
     @tickPlayer @self if @self
+    # checks to keep people in the visible area
+    if  @self.x < -@board.width / 2  || @self.y < -@board.height/2 || @self.x > @board.width/2 || @self.y > @board.height/2
+        @self.angle += 3.141596
     for id, player of @players
       @tickPlayer player
 
@@ -162,5 +166,8 @@ class Universe
     @context.fillStyle = "red"
     @context.fillRect -4, 5, 8, 2
     @context.restore()
+
+
+
 
 document.addEventListener "DOMContentLoaded", -> universe = new Universe()

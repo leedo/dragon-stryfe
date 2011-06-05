@@ -77,6 +77,9 @@
       if (this.self) {
         this.tickPlayer(this.self);
       }
+      if (this.self.x < -this.board.width / 2 || this.self.y < -this.board.height / 2 || this.self.x > this.board.width / 2 || this.self.y > this.board.height / 2) {
+        this.self.angle += 3.141596;
+      }
       _ref = this.players;
       _results = [];
       for (id in _ref) {
