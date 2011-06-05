@@ -17,13 +17,9 @@
       this.id = opts.id;
       this.name = opts.name || "unknown";
       this.trail = [];
-      this.moved = false;
     }
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
-      if (this.speed) {
-        this.moved = true;
-      }
       scale_y = Math.cos(this.angle);
       scale_x = Math.sin(this.angle);
       velocity_x = this.speed * scale_x;
@@ -32,9 +28,6 @@
       return this.y -= velocity_y;
     };
     Player.prototype.updateTrail = function() {
-      if (!this.moved) {
-        return;
-      }
       this.trail.unshift(this.thrust ? [this.x, this.y] : null);
       if (this.trail.length > 30) {
         return this.trail.pop();

@@ -7,10 +7,8 @@ class Player
     @id = opts.id
     @name = opts.name || "unknown"
     @trail = []
-    @moved = false
 
   gameTick: ->
-    @moved = true if @speed
     scale_y = Math.cos @angle
     scale_x = Math.sin @angle
     velocity_x = @speed * scale_x
@@ -19,7 +17,6 @@ class Player
     @y -= velocity_y
 
   updateTrail: ->
-    return unless @moved
     # stick an empty element in if no thrust on
     @trail.unshift if @thrust then [@x, @y] else null
     @trail.pop() if @trail.length > 30
