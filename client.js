@@ -96,7 +96,13 @@
         this.tickPlayer(player);
       }
       if (this.self.x < 0 || this.self.y < 0 || this.self.x > this.board.width || this.self.y > this.board.height) {
-        return this.self.angle += Math.PI;
+        this.self.angle += Math.PI;
+      }
+      if (this.self.angle > Math.PI * 2.0) {
+        this.self.angle -= Math.PI * 2.0;
+      }
+      if (this.self.angle < 0.0) {
+        return this.self.angle += Math.PI * 2.0;
       }
     };
     Universe.prototype.drawInfo = function() {

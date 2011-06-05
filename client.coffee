@@ -76,6 +76,13 @@ class Universe
     # checks to keep people in the visible area
     if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
         @self.angle += Math.PI
+    
+    # constrain angle to the range [0 .. 2*PI]
+    if @self.angle > Math.PI * 2.0
+       @self.angle -= Math.PI * 2.0
+    if @self.angle < 0.0
+       @self.angle += Math.PI * 2.0
+
 
   drawInfo: ->
     @context.fillStyle = "#fff"
