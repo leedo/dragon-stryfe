@@ -1,5 +1,5 @@
 (function() {
-  var Player, Self, Universe;
+  var ControlState, Player, Self, Universe, playerTurnRate;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -8,6 +8,15 @@
     child.__super__ = parent.prototype;
     return child;
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  ControlState = (function() {
+    function ControlState(opts) {
+      this.wPressed = opts.wPressed || 0;
+      this.aPressed = opts.aPressed || 0;
+      this.dPressed = opts.dPressed || 0;
+    }
+    return ControlState;
+  })();
+  playerTurnRate = 0.05;
   Player = (function() {
     function Player(opts) {
       this.sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"];
@@ -19,6 +28,11 @@
       this.thrusting = opts.thrusting || false;
       this.name = opts.name || "unknown";
       this.trail = [];
+      this.controls = opts.controls || {
+        wPressed: false,
+        aPressed: false,
+        dPressed: false
+      };
     }
     Player.prototype.serialized = function() {
       var data, field, _i, _len, _ref;
@@ -56,8 +70,10 @@
       Self.__super__.constructor.apply(this, arguments);
     }
     Self.prototype.handleInput = function() {
-      if (this.turn !== 0) {
-        this.angle += this.turn * 0.05;
+      if (this.controls.aPressed === true && this.controls.dPressed === false) {
+        this.angle += playerTurnRate;
+      } else if (this.controls.dPressed === true && this.controls.aPressed === false) {
+        this.angle -= playerTurnRate;
       }
       if (this.thrusting && this.speed < 8) {
         return this.speed += 0.4;
@@ -171,24 +187,25 @@
       document.addEventListener("keyup", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
-            return this.self.thrusting = false;
+            this.self.thrusting = false;
+            return this.self.controls.wPressed = false;
           case 68:
-            return this.self.turn = 0;
+            return this.self.controls.dPressed = false;
           case 65:
-            return this.self.turn = 0;
+            return this.self.controls.aPressed = false;
         }
       }, this), false);
       return document.addEventListener("keydown", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
             if (this.self.thrust) {
-              return this.self.thrusting = true;
+              this.self.thrusting = true;
             }
-            break;
+            return this.self.controls.wPressed = true;
           case 68:
-            return this.self.turn = -1;
+            return this.self.controls.dPressed = true;
           case 65:
-            return this.self.turn = 1;
+            return this.self.controls.aPressed = true;
         }
       }, this), false);
     };

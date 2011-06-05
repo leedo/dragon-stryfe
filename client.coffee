@@ -1,3 +1,28 @@
+class ControlState
+  constructor: (opts) ->
+    @wPressed = opts.wPressed || 0
+    @aPressed = opts.aPressed || 0
+    @dPressed = opts.dPressed || 0
+
+# some definitions for the tweakable bits
+playerTurnRate = 0.05
+maxThrust = 100.0
+thrustRegenRate = 0.25
+maxTrailLength = 15
+maxSpeed = 8
+accelRate = 0.4
+coastSpeed = 0.4
+decelRate = 0.1
+
+# util functions
+max: (a,b) ->
+  if a > b return a
+  return b
+
+min: (a,b) ->
+  if a < b return a
+  return b
+
 class Player
   constructor: (opts) ->
     @sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"]
@@ -9,6 +34,7 @@ class Player
     @thrusting = opts.thrusting || false
     @name = opts.name || "unknown"
     @trail = []
+    @controls = opts.controls || {wPressed:false,aPressed:false,dPressed:false}
 
   serialized: ->
     data = {}
@@ -27,33 +53,38 @@ class Player
   updateTrail: ->
     # stick an empty element in if no thrusting on
     @trail.unshift if @thrusting then [@x, @y] else null
-    @trail.pop() if @trail.length > 15
+    @trail.pop() if @trail.length > maxTrailLength
 
 class Self extends Player
   constructor: ->
     @turn = 0
     @thrusting = false
-    @thrust = 100 # amount of thrust remaining
+    @thrust = maxThrust # amount of thrust remaining
     super
 
   handleInput: ->
     # update our angle if a turn key is on
-    if @turn != 0
-      @angle += @turn * 0.05
+    if @controls.aPressed == true and @controls.dPressed == false
+      @angle += playerTurnRate
+    else if @controls.dPressed == true and @controls.aPressed == false
+      @angle -= playerTurnRate
 
     # update our speed if thrusting is on
-    if @thrusting and @speed < 8
-      @speed += 0.4
-    else if @speed > 0.4
-      @speed -= 0.1
+    if @thrust and @controls.wPressed
+       @thrusting = true
+    if @thrusting and @speed < maxSpeed
+      @speed += accelRate
+    else if @speed > coastSpeed
+      @speed -= decelRate
 
   gameTick: ->
     @handleInput()
     super
-    if @thrusting and @thrust > 0
+    if @thrusting and @thrust >= 1  # how can we be thrusting without any gas?
       @thrust--
     else
-      @thrust += 0.25
+      @thrust += thrustRegenRate
+      @thrust = max(@thrust, maxThrust)
       @thrusting = false
 
 
@@ -147,19 +178,21 @@ class Universe
       switch e.keyCode
         when 87
           @self.thrusting = false
+          @self.controls.wPressed = false
         when 68
-          @self.turn = 0
+          @self.controls.dPressed = false
         when 65
-          @self.turn = 0
+          @self.controls.aPressed = false
     , false
     document.addEventListener "keydown", (e) =>
       switch e.keyCode
         when 87
           @self.thrusting = true if @self.thrust
+          @self.controls.wPressed = true
         when 68
-          @self.turn = -1
+          @self.controls.dPressed = true
         when 65
-          @self.turn = 1
+          @self.controls.aPressed = true
     , false
 
   removePlayer: (id) ->
