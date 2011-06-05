@@ -8,7 +8,7 @@ class Player
     @name = opts.name || "unknown"
 
   gameTick: ->
-    scale_y = -Math.cos @angle
+    scale_y = Math.cos @angle
     scale_x = Math.sin @angle
     velocity_x = @speed * scale_x
     velocity_y = @speed * scale_y
@@ -45,7 +45,6 @@ class Universe
     @board = document.getElementById "universe"
     @board.width = document.width
     @board.height = document.height
-    @center = [ @board.width / 2, @board.height / 2]
     @context = @board.getContext "2d"
 
     @is_drawing
@@ -53,24 +52,22 @@ class Universe
 
     @socket = @connect()
 
-  coordToPos: (x, y) ->
-    return [@center[0] - x, @center[1] - y]
-
   gameTick: ->
     @board.width = @board.width
     @context.save()
     @tickPlayer @self if @self
-    @drawCurrentCoords()
+    @drawInfo()
     # checks to keep people in the visible area
-    if  @self.x < -@board.width / 2  || @self.y < -@board.height/2 || @self.x > @board.width/2 || @self.y > @board.height/2
-        @self.angle += 3.141596
+    if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
+        @self.angle += Math.PI
     for id, player of @players
       @tickPlayer player
 
-  drawCurrentCoords: ->
+  drawInfo: ->
     @context.fillStyle = "#fff"
     @context.fillText "x: #{parseInt @self.x}", 10, 10
     @context.fillText "y: #{parseInt @self.y}", 10, 20
+    @context.fillText "angle: #{@self.angle}", 10, 30
 
   syncSelf: ->
     @socket.send
@@ -86,6 +83,9 @@ class Universe
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
+    # just override the provided 0,0 default center
+    state.x = @board.width / 2
+    state.y = @board.height / 2
     state.name = prompt "What is your dragon's name?"
     @self = new Self state
     @syncSelf() # sync right away to update our name
@@ -105,7 +105,7 @@ class Universe
       @draw_buf = []
     @board.addEventListener "mousemove", (e) =>
       return unless @is_drawing
-      @draw_buf.push @coordToPos(e.clientX, e.clientY)
+      @draw_buf.push e.clientX, e.clientY
     @board.addEventListener "mouseup", (e) =>
       return unless @is_drawing
       @is_drawing = false
@@ -124,9 +124,9 @@ class Universe
         when 87
           @self.thrust = true
         when 68
-          @self.turn = 1
-        when 65
           @self.turn = -1
+        when 65
+          @self.turn = 1
 
   removePlayer: (id) ->
     console.log "remove player #{id}"
@@ -159,13 +159,11 @@ class Universe
     socket
 
   drawPlayer: (player) ->
-    [x, y] = @coordToPos player.x, player.y
-
-
+    [x, y] = [player.x, player.y]
     @context.translate x, y
     @context.fillStyle = "#fff"
     @context.fillText player.name, -4, -15
-    @context.rotate player.angle
+    @context.rotate -player.angle
     @context.translate -4, -3
     @context.fillStyle = "#fff"
     @context.fillRect 0, 0, 8, 8

@@ -19,7 +19,7 @@
     }
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
-      scale_y = -Math.cos(this.angle);
+      scale_y = Math.cos(this.angle);
       scale_x = Math.sin(this.angle);
       velocity_x = this.speed * scale_x;
       velocity_y = this.speed * scale_y;
@@ -58,15 +58,11 @@
       this.board = document.getElementById("universe");
       this.board.width = document.width;
       this.board.height = document.height;
-      this.center = [this.board.width / 2, this.board.height / 2];
       this.context = this.board.getContext("2d");
       this.is_drawing;
       this.draw_buf = [];
       this.socket = this.connect();
     }
-    Universe.prototype.coordToPos = function(x, y) {
-      return [this.center[0] - x, this.center[1] - y];
-    };
     Universe.prototype.gameTick = function() {
       var id, player, _ref, _results;
       this.board.width = this.board.width;
@@ -74,9 +70,9 @@
       if (this.self) {
         this.tickPlayer(this.self);
       }
-      this.drawCurrentCoords();
-      if (this.self.x < -this.board.width / 2 || this.self.y < -this.board.height / 2 || this.self.x > this.board.width / 2 || this.self.y > this.board.height / 2) {
-        this.self.angle += 3.141596;
+      this.drawInfo();
+      if (this.self.x < 0 || this.self.y < 0 || this.self.x > this.board.width || this.self.y > this.board.height) {
+        this.self.angle += Math.PI;
       }
       _ref = this.players;
       _results = [];
@@ -86,10 +82,11 @@
       }
       return _results;
     };
-    Universe.prototype.drawCurrentCoords = function() {
+    Universe.prototype.drawInfo = function() {
       this.context.fillStyle = "#fff";
       this.context.fillText("x: " + (parseInt(this.self.x)), 10, 10);
-      return this.context.fillText("y: " + (parseInt(this.self.y)), 10, 20);
+      this.context.fillText("y: " + (parseInt(this.self.y)), 10, 20);
+      return this.context.fillText("angle: " + this.self.angle, 10, 30);
     };
     Universe.prototype.syncSelf = function() {
       return this.socket.send({
@@ -106,6 +103,8 @@
     };
     Universe.prototype.initSelf = function(state) {
       console.log("init self with id " + state.id);
+      state.x = this.board.width / 2;
+      state.y = this.board.height / 2;
       state.name = prompt("What is your dragon's name?");
       this.self = new Self(state);
       this.syncSelf();
@@ -130,7 +129,7 @@
         if (!this.is_drawing) {
           return;
         }
-        return this.draw_buf.push(this.coordToPos(e.clientX, e.clientY));
+        return this.draw_buf.push(e.clientX, e.clientY);
       }, this));
       this.board.addEventListener("mouseup", __bind(function(e) {
         if (!this.is_drawing) {
@@ -154,9 +153,9 @@
           case 87:
             return this.self.thrust = true;
           case 68:
-            return this.self.turn = 1;
-          case 65:
             return this.self.turn = -1;
+          case 65:
+            return this.self.turn = 1;
         }
       }, this));
     };
@@ -205,11 +204,11 @@
     };
     Universe.prototype.drawPlayer = function(player) {
       var x, y, _ref;
-      _ref = this.coordToPos(player.x, player.y), x = _ref[0], y = _ref[1];
+      _ref = [player.x, player.y], x = _ref[0], y = _ref[1];
       this.context.translate(x, y);
       this.context.fillStyle = "#fff";
       this.context.fillText(player.name, -4, -15);
-      this.context.rotate(player.angle);
+      this.context.rotate(-player.angle);
       this.context.translate(-4, -3);
       this.context.fillStyle = "#fff";
       this.context.fillRect(0, 0, 8, 8);
