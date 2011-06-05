@@ -10,6 +10,7 @@
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   Player = (function() {
     function Player(opts) {
+      this.sync = ["name", "speed", "angle", "x", "y", "trail", "thrust"];
       this.x = opts.x || 0;
       this.y = opts.y || 0;
       this.speed = opts.speed || 0;
@@ -18,6 +19,16 @@
       this.name = opts.name || "unknown";
       this.trail = [];
     }
+    Player.prototype.serialized = function() {
+      var data, field, _i, _len, _ref;
+      data = {};
+      _ref = this.sync;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        field = _ref[_i];
+        data[field] = this[field];
+      }
+      return data;
+    };
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
       scale_y = Math.cos(this.angle);
@@ -29,7 +40,7 @@
     };
     Player.prototype.updateTrail = function() {
       this.trail.unshift(this.thrust ? [this.x, this.y] : null);
-      if (this.trail.length > 30) {
+      if (this.trail.length > 15) {
         return this.trail.pop();
       }
     };
@@ -46,10 +57,10 @@
       if (this.turn !== 0) {
         this.angle += this.turn * 0.05;
       }
-      if (this.thrust && this.speed < 4) {
-        return this.speed += 0.2;
-      } else if (this.speed > 0.2) {
-        return this.speed -= 0.05;
+      if (this.thrust && this.speed < 8) {
+        return this.speed += 0.4;
+      } else if (this.speed > 0.4) {
+        return this.speed -= 0.1;
       }
     };
     Self.prototype.gameTick = function() {
@@ -74,6 +85,7 @@
     Universe.prototype.gameTick = function() {
       var id, player, _ref;
       this.board.width = this.board.width;
+      this.drawInfo();
       this.context.save();
       if (this.self) {
         this.tickPlayer(this.self);
@@ -83,7 +95,6 @@
         player = _ref[id];
         this.tickPlayer(player);
       }
-      this.drawInfo();
       if (this.self.x < 0 || this.self.y < 0 || this.self.x > this.board.width || this.self.y > this.board.height) {
         return this.self.angle += Math.PI;
       }
@@ -95,13 +106,8 @@
       return this.context.fillText("angle: " + this.self.angle, 10, 30);
     };
     Universe.prototype.syncSelf = function() {
-      return this.socket.send({
-        x: this.self.x,
-        y: this.self.y,
-        speed: this.self.speed,
-        angle: this.self.angle,
-        name: this.self.name
-      });
+      this.self.updateTrail();
+      return this.socket.send(this.self.serialized());
     };
     Universe.prototype.tickPlayer = function(player) {
       player.gameTick();
@@ -117,25 +123,11 @@
       this.drawPlayer(this.self);
       this.enableControls();
       setInterval((__bind(function() {
-        return this.updateTrails();
-      }, this)), 200);
-      setInterval((__bind(function() {
         return this.syncSelf();
       }, this)), 100);
       return setInterval((__bind(function() {
         return this.gameTick();
-      }, this)), 20);
-    };
-    Universe.prototype.updateTrails = function() {
-      var player, _i, _len, _ref, _results;
-      this.self.updateTrail();
-      _ref = this.players;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        player = _ref[_i];
-        _results.push(player.updateTrail());
-      }
-      return _results;
+      }, this)), 40);
     };
     Universe.prototype.enableControls = function() {
       this.board.addEventListener("mousedown", __bind(function(e) {
@@ -200,16 +192,18 @@
       return _results;
     };
     Universe.prototype.syncPlayer = function(state) {
-      var player;
+      var field, player, _i, _len, _ref, _results;
       player = this.players[state.id];
       if (!player) {
         return;
       }
-      player.speed = state.speed;
-      player.angle = state.angle;
-      player.x = state.x;
-      player.y = state.y;
-      return player.name = state.name;
+      _ref = player.sync;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        field = _ref[_i];
+        _results.push(player[field] = state[field]);
+      }
+      return _results;
     };
     Universe.prototype.connect = function() {
       var socket;

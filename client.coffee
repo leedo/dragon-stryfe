@@ -1,5 +1,6 @@
 class Player
   constructor: (opts) ->
+    @sync = ["name", "speed", "angle", "x", "y", "trail", "thrust"]
     @x = opts.x || 0
     @y = opts.y || 0
     @speed = opts.speed || 0
@@ -7,6 +8,12 @@ class Player
     @id = opts.id
     @name = opts.name || "unknown"
     @trail = []
+
+  serialized: ->
+    data = {}
+    for field in @sync
+      data[field] = @[field]
+    data
 
   gameTick: ->
     scale_y = Math.cos @angle
@@ -19,7 +26,7 @@ class Player
   updateTrail: ->
     # stick an empty element in if no thrust on
     @trail.unshift if @thrust then [@x, @y] else null
-    @trail.pop() if @trail.length > 30
+    @trail.pop() if @trail.length > 15
 
 class Self extends Player
   constructor: ->
@@ -33,10 +40,10 @@ class Self extends Player
       @angle += @turn * 0.05
 
     # update our speed if thrust is on
-    if @thrust and @speed < 4
-      @speed += 0.2
-    else if @speed > 0.2
-      @speed -= 0.05
+    if @thrust and @speed < 8
+      @speed += 0.4
+    else if @speed > 0.4
+      @speed -= 0.1
 
   gameTick: ->
     @handleInput()
@@ -61,10 +68,10 @@ class Universe
 
   gameTick: ->
     @board.width = @board.width
+    @drawInfo()
     @context.save()
     @tickPlayer @self if @self
     @tickPlayer player for id, player of @players
-    @drawInfo()
 
     # checks to keep people in the visible area
     if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
@@ -77,12 +84,8 @@ class Universe
     @context.fillText "angle: #{@self.angle}", 10, 30
 
   syncSelf: ->
-    @socket.send
-      x: @self.x,
-      y: @self.y,
-      speed: @self.speed,
-      angle: @self.angle,
-      name: @self.name
+    @self.updateTrail()
+    @socket.send @self.serialized()
 
   tickPlayer: (player) ->
     player.gameTick()
@@ -99,13 +102,8 @@ class Universe
     @drawPlayer @self
     @enableControls()
 
-    setInterval (=> @updateTrails()), 200
     setInterval (=> @syncSelf()), 100
-    setInterval (=> @gameTick()), 20
-
-  updateTrails: ->
-    @self.updateTrail()
-    player.updateTrail() for player in @players
+    setInterval (=> @gameTick()), 40
 
   enableControls: ->
 
@@ -156,11 +154,8 @@ class Universe
   syncPlayer: (state) ->
     player = @players[state.id]
     return unless player # don't sync our self
-    player.speed = state.speed
-    player.angle = state.angle
-    player.x = state.x
-    player.y = state.y
-    player.name = state.name
+    for field in player.sync
+      player[field] = state[field]
 
   connect: ->
     socket = new io.Socket window.location.hostname
