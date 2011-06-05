@@ -15,20 +15,6 @@ coastSpeed = 0.4
 decelRate = 0.1
 
 # util functions
-max: (a,b) ->
-  if a > b
-    return a
-  return b
-
-min: (a,b) ->
-  if a < b
-    return a
-  return b
-
-abs: (a) ->
-  if a >= 0
-    return a
-  return -a
 
 # how brutally inefficient is doing this?
 normalize: (vec) ->
@@ -87,8 +73,10 @@ class Self extends Player
       @angle -= playerTurnRate
 
     # update our speed if thrusting is on
-    if @thrust and @controls.wPressed
-       @thrusting = true
+
+    # use this again if we wanna have thrusting putter on when gas runs out
+    #if @thrust and @controls.wPressed
+    #   @thrusting = true
     if @thrusting and @speed < maxSpeed
       @speed += accelRate
     else if @speed > coastSpeed
@@ -101,7 +89,7 @@ class Self extends Player
       @thrust--
     else
       @thrust += thrustRegenRate
-      @thrust = max(@thrust, maxThrust)
+      @thrust = Math.min(@thrust, maxThrust)
       @thrusting = false
 
 

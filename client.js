@@ -25,24 +25,6 @@
   coastSpeed = 0.4;
   decelRate = 0.1;
   ({
-    max: function(a, b) {
-      if (a > b) {
-        return a;
-      }
-      return b;
-    },
-    min: function(a, b) {
-      if (a < b) {
-        return a;
-      }
-      return b;
-    },
-    abs: function(a) {
-      if (a >= 0) {
-        return a;
-      }
-      return -a;
-    },
     normalize: function(vec) {
       var length;
       length = sqrt(vec.x * vec.x + vec.y * vec.y);
@@ -113,9 +95,6 @@
       } else if (this.controls.dPressed === true && this.controls.aPressed === false) {
         this.angle -= playerTurnRate;
       }
-      if (this.thrust && this.controls.wPressed) {
-        this.thrusting = true;
-      }
       if (this.thrusting && this.speed < maxSpeed) {
         return this.speed += accelRate;
       } else if (this.speed > coastSpeed) {
@@ -129,7 +108,7 @@
         return this.thrust--;
       } else {
         this.thrust += thrustRegenRate;
-        this.thrust = max(this.thrust, maxThrust);
+        this.thrust = Math.min(this.thrust, maxThrust);
         return this.thrusting = false;
       }
     };
