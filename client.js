@@ -17,9 +17,13 @@
       this.id = opts.id;
       this.name = opts.name || "unknown";
       this.trail = [];
+      this.moved = false;
     }
     Player.prototype.gameTick = function() {
       var scale_x, scale_y, velocity_x, velocity_y;
+      if (this.speed) {
+        this.moved = true;
+      }
       scale_y = Math.cos(this.angle);
       scale_x = Math.sin(this.angle);
       velocity_x = this.speed * scale_x;
@@ -28,12 +32,12 @@
       return this.y -= velocity_y;
     };
     Player.prototype.updateTrail = function() {
-      if (!this.thrust) {
+      if (!this.moved) {
         return;
       }
-      this.trail.push([this.x, this.y]);
-      if (this.trail.length > 5) {
-        return this.trail.shift();
+      this.trail.unshift(this.thrust ? [this.x, this.y] : null);
+      if (this.trail.length > 30) {
+        return this.trail.pop();
       }
     };
     return Player;
@@ -226,14 +230,14 @@
       return socket;
     };
     Universe.prototype.drawTrail = function(player) {
-      var coord, opacity, _i, _len, _ref, _results;
-      opacity = 2;
+      var coord, opacity, x, y, _i, _len, _ref, _results;
+      opacity = 0.3;
       _ref = player.trail;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         coord = _ref[_i];
-        this.context.fillStyle = "rgba(255,255,255," + (opacity++ / 10) + ")";
-        _results.push(this.context.fillRect(coord[0], coord[1], 8, 8));
+        opacity -= 0.01;
+        _results.push(coord ? ((x = coord[0], y = coord[1], coord), this.context.fillStyle = "rgba(255,255,255," + opacity + ")", this.context.fillRect(x, y, 8, 8)) : void 0);
       }
       return _results;
     };

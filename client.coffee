@@ -7,8 +7,10 @@ class Player
     @id = opts.id
     @name = opts.name || "unknown"
     @trail = []
+    @moved = false
 
   gameTick: ->
+    @moved = true if @speed
     scale_y = Math.cos @angle
     scale_x = Math.sin @angle
     velocity_x = @speed * scale_x
@@ -17,9 +19,10 @@ class Player
     @y -= velocity_y
 
   updateTrail: ->
-    return unless @thrust
-    @trail.push [@x, @y]
-    @trail.shift() if @trail.length > 5
+    return unless @moved
+    # stick an empty element in if no thrust on
+    @trail.unshift if @thrust then [@x, @y] else null
+    @trail.pop() if @trail.length > 30
 
 class Self extends Player
   constructor: ->
@@ -171,13 +174,16 @@ class Universe
     socket
 
   drawTrail: (player) ->
-    opacity = 2
+    opacity = 0.3
     for coord in player.trail
-      @context.fillStyle = "rgba(255,255,255,#{opacity++ / 10})"
-      @context.fillRect coord[0], coord[1], 8, 8
+      opacity -= 0.01
+      if coord
+        [x, y] = coord
+        @context.fillStyle = "rgba(255,255,255,#{opacity})"
+        @context.fillRect x, y, 8, 8
 
   drawPlayer: (player) ->
-    @drawTrail(player)
+    @drawTrail player
     [x, y] = [player.x, player.y]
     @context.translate x, y
     @context.fillStyle = "#fff"
