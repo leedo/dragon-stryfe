@@ -33,6 +33,7 @@ class Self extends Player
   constructor: ->
     @turn = 0
     @thrusting = false
+    @thrust = 100 # amount of thrust remaining
     super
 
   handleInput: ->
@@ -49,6 +50,11 @@ class Self extends Player
   gameTick: ->
     @handleInput()
     super
+    if @thrusting and @thrust > 0
+      @thrust--
+    else
+      @thrust += 0.25
+      @thrusting = false
 
 
 class Universe
@@ -70,6 +76,7 @@ class Universe
   gameTick: ->
     @board.width = @board.width
     @drawInfo()
+    @drawThrustMeter()
     @context.save()
     @tickPlayer @self if @self
     @tickPlayer player for id, player of @players
@@ -91,6 +98,8 @@ class Universe
     @context.fillText "x: #{parseInt @self.x}", 10, 10
     @context.fillText "y: #{parseInt @self.y}", 10, 20
     @context.fillText "angle: #{@self.angle}", 10, 30
+    @context.fillText "speed: #{@self.speed}", 10, 40
+    @context.fillText "thrust: #{@self.thrust}", 10, 50
 
   syncSelf: ->
     @self.updateTrail()
@@ -146,7 +155,7 @@ class Universe
     document.addEventListener "keydown", (e) =>
       switch e.keyCode
         when 87
-          @self.thrusting = true
+          @self.thrusting = true if @self.thrust
         when 68
           @self.turn = -1
         when 65
@@ -178,6 +187,13 @@ class Universe
     @socket.on 'message', (msg) =>
       req = JSON.parse msg
       @[ req.action ](req.data)
+
+  drawThrustMeter: ->
+    [x, y] = [@board.width - 30, @board.height - 10]
+    for i in [0..10]
+      @context.fillStyle = if i*10 <= @self.thrust then "red" else "#ccc"
+      @context.fillRect x, y, 20, 5
+      y -= 10
 
   drawTrail: (player) ->
     opacity = 0.3

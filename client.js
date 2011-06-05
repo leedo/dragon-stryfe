@@ -52,6 +52,7 @@
     function Self() {
       this.turn = 0;
       this.thrusting = false;
+      this.thrust = 100;
       Self.__super__.constructor.apply(this, arguments);
     }
     Self.prototype.handleInput = function() {
@@ -66,7 +67,13 @@
     };
     Self.prototype.gameTick = function() {
       this.handleInput();
-      return Self.__super__.gameTick.apply(this, arguments);
+      Self.__super__.gameTick.apply(this, arguments);
+      if (this.thrusting && this.thrust > 0) {
+        return this.thrust--;
+      } else {
+        this.thrust += 0.25;
+        return this.thrusting = false;
+      }
     };
     return Self;
   })();
@@ -87,6 +94,7 @@
       var id, player, _ref;
       this.board.width = this.board.width;
       this.drawInfo();
+      this.drawThrustMeter();
       this.context.save();
       if (this.self) {
         this.tickPlayer(this.self);
@@ -113,7 +121,9 @@
       this.context.fillStyle = "#fff";
       this.context.fillText("x: " + (parseInt(this.self.x)), 10, 10);
       this.context.fillText("y: " + (parseInt(this.self.y)), 10, 20);
-      return this.context.fillText("angle: " + this.self.angle, 10, 30);
+      this.context.fillText("angle: " + this.self.angle, 10, 30);
+      this.context.fillText("speed: " + this.self.speed, 10, 40);
+      return this.context.fillText("thrust: " + this.self.thrust, 10, 50);
     };
     Universe.prototype.syncSelf = function() {
       this.self.updateTrail();
@@ -171,7 +181,10 @@
       return document.addEventListener("keydown", __bind(function(e) {
         switch (e.keyCode) {
           case 87:
-            return this.self.thrusting = true;
+            if (this.self.thrust) {
+              return this.self.thrusting = true;
+            }
+            break;
           case 68:
             return this.self.turn = -1;
           case 65:
@@ -221,6 +234,17 @@
         req = JSON.parse(msg);
         return this[req.action](req.data);
       }, this));
+    };
+    Universe.prototype.drawThrustMeter = function() {
+      var i, x, y, _ref, _results;
+      _ref = [this.board.width - 30, this.board.height - 10], x = _ref[0], y = _ref[1];
+      _results = [];
+      for (i = 0; i <= 10; i++) {
+        this.context.fillStyle = i * 10 <= this.self.thrust ? "red" : "#ccc";
+        this.context.fillRect(x, y, 20, 5);
+        _results.push(y -= 10);
+      }
+      return _results;
     };
     Universe.prototype.drawTrail = function(player) {
       var coord, opacity, x, y, _i, _len, _ref, _results;
