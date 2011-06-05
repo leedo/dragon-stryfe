@@ -42,6 +42,17 @@
         return a;
       }
       return -a;
+    },
+    normalize: function(vec) {
+      var length;
+      length = sqrt(vec.x * vec.x + vec.y * vec.y);
+      return {
+        x: vec.x / length,
+        y: vec.y / length
+      };
+    },
+    dot: function(a, b) {
+      return a.x * b.x + a.y * b.y;
     }
   });
   Player = (function() {

@@ -30,6 +30,15 @@ abs: (a) ->
     return a
   return -a
 
+# how brutally inefficient is doing this?
+normalize: (vec) ->
+  length = sqrt(vec.x*vec.x+vec.y*vec.y)
+  return {x:vec.x / length, y: vec.y / length}
+
+dot: (a, b) ->
+  return a.x * b.x + a.y * b.y
+
+
 
 class Player
   constructor: (opts) ->
