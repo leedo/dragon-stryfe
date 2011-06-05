@@ -157,14 +157,14 @@ class Universe
 
 
     @context.translate x, y
-    @context.translate -4, -3
     @context.fillStyle = "#fff"
     @context.fillText player.name, -4, -15
     @context.rotate player.angle
+    @context.translate -4, -3
     @context.fillStyle = "#fff"
-    @context.fillRect -4, -3, 8, 8
+    @context.fillRect 0, 0, 8, 8
     @context.fillStyle = "red"
-    @context.fillRect -4, 5, 8, 2
+    @context.fillRect 0, 8, 8, 2
     @context.restore()
 
 
