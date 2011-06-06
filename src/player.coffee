@@ -28,6 +28,7 @@ class Player
     @trail = []
     @controls = opts.controls || {wPressed:false,aPressed:false,dPressed:false}
     @breathing = opts.breathing || false
+    @damage = opts.damage || 0
 
   serialized: ->
     data = {}
@@ -50,12 +51,12 @@ class Player
 
   # can I not pass in both players?  does it really matter?
   tryToBreathe: (player1, player2) ->
-    #console.log "called try to breathe from #{player1} to #{player2}"
     if player1 != player2 and util.distSquared(player1, player2) < fireDistanceSquared
         vecToPlayer = util.subtractVec(player2, player1)
-        angleToPlayer = Math.atan2(vecToPlayer.x, vecToPlayer.y)
+        angleToPlayer = Math.PI + Math.atan2(vecToPlayer.x, vecToPlayer.y)
         if Math.abs(angleToPlayer - player1.angle) < 0.8
-          player1.breathing = true
+          player1.breathing = angleToPlayer
+          player2.damage++
 
 class Self extends Player
   constructor: ->

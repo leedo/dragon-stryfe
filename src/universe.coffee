@@ -49,7 +49,6 @@ class Universe
     @context.fillText "angle: #{@self.angle}", 10, 30
     @context.fillText "speed: #{@self.speed}", 10, 40
     @context.fillText "thrust: #{@self.thrust}", 10, 50
-    #@content.fillText "breathing: #{@self.thrust}", 10, 60
 
   syncSelf: ->
     @self.updateTrail()
