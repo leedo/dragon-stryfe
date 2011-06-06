@@ -1,5 +1,5 @@
 (function() {
-  var ControlState, Player, Self, Universe, accelRate, coastSpeed, decelRate, maxSpeed, maxThrust, maxTrailLength, playerTurnRate, thrustRegenRate;
+  var ControlState, Player, Self, Universe, accelRate, coastSpeed, decelRate, fireDistanceSquared, maxSpeed, maxThrust, maxTrailLength, playerTurnRate, root, thrustRegenRate;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -8,6 +8,7 @@
     child.__super__ = parent.prototype;
     return child;
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  root = typeof exports !== "undefined" && exports !== null ? exports : this;
   ControlState = (function() {
     function ControlState(opts) {
       this.wPressed = opts.wPressed || 0;
@@ -24,43 +25,48 @@
   accelRate = 0.4;
   coastSpeed = 0.4;
   decelRate = 0.1;
-  ({
-    length: function(vec) {
-      return Math.sqrt(vec.x * vec.x + vec.y * vec.y);
-    },
-    normalize: function(vec) {
-      var l;
-      l = length(vec);
-      return {
-        x: vec.x / l,
-        y: vec.y / l
-      };
-    },
-    addVec: function(a, b) {
-      return {
-        x: a.x + b.x,
-        y: a.y + b.y
-      };
-    },
-    subtractVec: function(a, b) {
-      return {
-        x: a.x - b.x,
-        y: a.y - b.y
-      };
-    },
-    dot: function(a, b) {
-      return a.x * b.x + a.y * b.y;
-    },
-    angleBetween: function(a, b) {
-      var na, nb;
-      na = normalize(a);
-      nb = normalize(b);
-      return Math.acos(dot(na, nb));
-    },
-    distanceFrom: function(a, b) {
-      return length(subtractVec(b, a));
-    }
-  });
+  fireDistanceSquared = 1600.0;
+  root.length = function(vec) {
+    return Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+  };
+  root.normalize = function(vec) {
+    var l;
+    l = length(vec);
+    return {
+      x: vec.x / l,
+      y: vec.y / l
+    };
+  };
+  root.addVec = function(a, b) {
+    return {
+      x: a.x + b.x,
+      y: a.y + b.y
+    };
+  };
+  root.subtractVec = function(a, b) {
+    return {
+      x: a.x - b.x,
+      y: a.y - b.y
+    };
+  };
+  root.dot = function(a, b) {
+    return a.x * b.x + a.y * b.y;
+  };
+  root.angleBetween = function(a, b) {
+    var na, nb;
+    na = normalize(a);
+    nb = normalize(b);
+    return Math.acos(dot(na, nb));
+  };
+  root.distanceFrom = function(a, b) {
+    return length(subtractVec(b, a));
+  };
+  root.distSquared = function(a, b) {
+    var xdiff, ydiff;
+    xdiff = b.x - a.x;
+    ydiff = b.y - a.y;
+    return xdiff * xdiff + ydiff * ydiff;
+  };
   Player = (function() {
     function Player(opts) {
       this.sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"];
@@ -77,6 +83,7 @@
         aPressed: false,
         dPressed: false
       };
+      this.breathing = opts.breathing || false;
     }
     Player.prototype.serialized = function() {
       var data, field, _i, _len, _ref;
@@ -136,6 +143,17 @@
         return this.thrusting = false;
       }
     };
+    Self.prototype.tryToBreathe = function(player1, player2) {
+      var angleToPlayer, vecToPlayer;
+      console.log("called try to breathe from " + player1 + " to " + player2);
+      if (player1 !== player2 && distSquared(player1, player2) < fireDistanceSquared) {
+        vecToPlayer = subtractVec(player2, player1);
+        angleToPlayer = Math.atan2(vecToPlayer.x, vecToPlayer.y);
+        if (Math.abs(angleToPlayer - this.angle) < 0.8) {
+          return this.breathing = true;
+        }
+      }
+    };
     return Self;
   })();
   Universe = (function() {
@@ -152,7 +170,7 @@
       this.connect();
     }
     Universe.prototype.gameTick = function() {
-      var id, player, _ref;
+      var id, player, _ref, _ref2;
       this.board.width = this.board.width;
       this.drawInfo();
       this.drawThrustMeter();
@@ -167,6 +185,12 @@
       }
       if (this.self.x < 0 || this.self.y < 0 || this.self.x > this.board.width || this.self.y > this.board.height) {
         this.self.angle += Math.PI;
+      }
+      this.self.breathing = false;
+      _ref2 = this.players;
+      for (id in _ref2) {
+        player = _ref2[id];
+        this.self.tryToBreathe(this.self, player);
       }
       if (this.self.angle > Math.PI * 2.0) {
         this.self.angle -= Math.PI * 2.0;

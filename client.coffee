@@ -1,3 +1,5 @@
+root = exports ? this
+
 class ControlState
   constructor: (opts) ->
     @wPressed = opts.wPressed || 0
@@ -13,38 +15,43 @@ maxSpeed = 8
 accelRate = 0.4
 coastSpeed = 0.4
 decelRate = 0.1
+fireDistanceSquared = 1600.0 # 4 or 5 dragon widths
 
 # util functions
 
 
 #world's slowest vector algebra library ahoy
-
-length: (vec) ->
+root.length = (vec) ->
   return Math.sqrt(vec.x * vec.x + vec.y * vec.y)
 
 # how brutally inefficient is doing this?
-normalize: (vec) ->
-  l = length(vec)
-  return {x:vec.x / l, y: vec.y / l}
+root.normalize = (vec) ->
+    l = length(vec)
+    return {x:vec.x / l, y: vec.y / l}
 
-addVec: (a, b) ->
-  return {x: a.x + b.x, y: a.y + b.y}
+root.addVec = (a, b) ->
+    return {x: a.x + b.x, y: a.y + b.y}
 
-subtractVec: (a, b) ->
-  return {x: a.x - b.x, y: a.y - b.y}
+root.subtractVec = (a, b) ->
+    return {x: a.x - b.x, y: a.y - b.y}
 
-dot: (a, b) ->
-  return a.x * b.x + a.y * b.y
+root.dot = (a, b) ->
+    return a.x * b.x + a.y * b.y
 
 # we're assuming the vectors are normalized for this?
 # nah, do the efficient case some other place
-angleBetween: (a, b) ->
-  na = normalize(a)
-  nb = normalize(b)
-  return Math.acos(dot(na,nb))
+root.angleBetween = (a, b) ->
+    na = normalize(a)
+    nb = normalize(b)
+    return Math.acos(dot(na,nb))
 
-distanceFrom: (a, b) ->
-  return length(subtractVec(b, a))
+root.distanceFrom = (a, b) ->
+    return length(subtractVec(b, a))
+
+root.distSquared = (a, b) ->
+    xdiff = b.x - a.x
+    ydiff = b.y - a.y
+    return xdiff * xdiff + ydiff * ydiff
 
 
 class Player
@@ -59,6 +66,7 @@ class Player
     @name = opts.name || "unknown"
     @trail = []
     @controls = opts.controls || {wPressed:false,aPressed:false,dPressed:false}
+    @breathing = opts.breathing || false
 
   serialized: ->
     data = {}
@@ -113,6 +121,15 @@ class Self extends Player
       @thrust = Math.min(@thrust, maxThrust)
       @thrusting = false
 
+  tryToBreathe: (player1, player2) ->
+    console.log "called try to breathe from #{player1} to #{player2}"
+    if player1 != player2 and distSquared(player1, player2) < fireDistanceSquared
+        vecToPlayer = subtractVec(player2, player1)
+        angleToPlayer = Math.atan2(vecToPlayer.x, vecToPlayer.y)
+        if Math.abs(angleToPlayer - @angle) < 0.8
+          @breathing = true
+
+
 
 class Universe
   constructor: ->
@@ -142,6 +159,9 @@ class Universe
     if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
         @self.angle += Math.PI
 
+    @self.breathing = false
+    @self.tryToBreathe(@self, player) for id, player of @players
+
     # constrain angle to the range [0 .. 2*PI]
     if @self.angle > Math.PI * 2.0
        @self.angle -= Math.PI * 2.0
@@ -157,6 +177,7 @@ class Universe
     @context.fillText "angle: #{@self.angle}", 10, 30
     @context.fillText "speed: #{@self.speed}", 10, 40
     @context.fillText "thrust: #{@self.thrust}", 10, 50
+    #@content.fillText "breathing: #{@self.thrust}", 10, 60
 
   syncSelf: ->
     @self.updateTrail()
