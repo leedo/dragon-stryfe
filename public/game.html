@@ -2,6 +2,12 @@
   <head>
     <script src="/socket.io/socket.io.js"></script> 
     <script src="/client.js"></script> 
+    <script>
+      document.addEventListener("DOMContentLoaded", function(){
+        var universe = require("universe");
+        universe.bang();
+      }, false);
+    </script>
     <link type="text/css" rel="stylesheet" href="/game.css" />
   </head>
   <body>

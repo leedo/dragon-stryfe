@@ -1,19 +1,17 @@
 express = require 'express'
 io = require 'socket.io'
 fs = require 'fs'
+stitch = require 'stitch'
 
 client_id = 1
 app = express.createServer()
 socket = io.listen app
 players = []
-type_map =
-  js: "text/javascript"
-  css: "text/css"
-  html: "text/html"
 
-app.configure ->
-  app.use express.static "#{__dirname}/../public"
-
+package = stitch.createPackage
+  paths: [__dirname]
+app.configure -> app.use express.static "#{__dirname}/../public"
+app.get "/client.js", package.createServer()
 app.get "/", (req, res) -> res.redirect("/game.html")
 
 broadcast = (action, data) ->
