@@ -1,0 +1,26 @@
+{ "name": "dragon-stryfe"
+, "description": "2D space shooter"
+, "author": "Nate Voorhees and Lee Aylward"
+, "version": "0.0.1"
+, "licenses": [
+  { "type": "MIT"
+  , "url": "https://github.com/leedo/dragon-stryfe/raw/master/LICENSE"
+  }]
+, "repository":
+  { "type": "git"
+  , "url": "https://github.com/leedo/dragon-stryfe.git"
+  }
+, "main": "./lib/index.js"
+, "dependencies":
+  {
+  }
+, "devDependencies":
+  { "nodeunit": ">=0.5.0"
+  , "coffee-script": ">=1.1.1"
+  , "express": ">=2.3.1"
+  , "socket.io": ">=0.6.18"
+  }
+, "engines":
+  { "node": "~0.4"
+  }
+}

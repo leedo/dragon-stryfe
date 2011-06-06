@@ -11,15 +11,10 @@ type_map =
   css: "text/css"
   html: "text/html"
 
-app.get "/", (req, res) -> res.redirect("/game.html")
+app.configure ->
+  app.use express.static "#{__dirname}/../public"
 
-app.get /^\/(.+\.(html|css|js))/, (req, res) ->
-  [file, ext] = req.params
-  fs.readFile file, (err, body) ->
-    if err
-      res.send 404
-    else
-      res.send body, 'Content-Type': type_map[ext], 200
+app.get "/", (req, res) -> res.redirect("/game.html")
 
 broadcast = (action, data) ->
   body = JSON.stringify {action: action, data: data}
