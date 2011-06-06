@@ -1,4 +1,4 @@
-player = require 'player'
+players = require 'player'
 util = require 'util'
 
 exports.bang = -> new Universe()
@@ -64,7 +64,7 @@ class Universe
     state.y = @board.height / 2
     state.name = prompt "What is your dragon's name?"
 
-    @self = player.createSelf state
+    @self = players.createSelf state
     @drawPlayer @self
     @enableControls()
 
@@ -116,7 +116,7 @@ class Universe
 
   addPlayer: (state) ->
     console.log "add player #{state.id}"
-    player = player.createPlayer state
+    player = players.createPlayer state
     @drawPlayer player
     @players[player.id] = player
 
