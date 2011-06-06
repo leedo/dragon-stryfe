@@ -16,14 +16,35 @@ decelRate = 0.1
 
 # util functions
 
+
+#world's slowest vector algebra library ahoy
+
+length: (vec) ->
+  return Math.sqrt(vec.x * vec.x + vec.y * vec.y)
+
 # how brutally inefficient is doing this?
 normalize: (vec) ->
-  length = sqrt(vec.x*vec.x+vec.y*vec.y)
-  return {x:vec.x / length, y: vec.y / length}
+  l = length(vec)
+  return {x:vec.x / l, y: vec.y / l}
+
+addVec: (a, b) ->
+  return {x: a.x + b.x, y: a.y + b.y}
+
+subtractVec: (a, b) ->
+  return {x: a.x - b.x, y: a.y - b.y}
 
 dot: (a, b) ->
   return a.x * b.x + a.y * b.y
 
+# we're assuming the vectors are normalized for this?
+# nah, do the efficient case some other place
+angleBetween: (a, b) ->
+  na = normalize(a)
+  nb = normalize(b)
+  return Math.acos(dot(na,nb))
+
+distanceFrom: (a, b) ->
+  return length(subtractVec(b, a))
 
 
 class Player
