@@ -1,135 +1,7 @@
-root = exports ? this
+players = require 'player'
+util = require 'util'
 
-class ControlState
-  constructor: (opts) ->
-    @wPressed = opts.wPressed || 0
-    @aPressed = opts.aPressed || 0
-    @dPressed = opts.dPressed || 0
-
-# some definitions for the tweakable bits
-playerTurnRate = 0.05
-maxThrust = 100.0
-thrustRegenRate = 0.25
-maxTrailLength = 15
-maxSpeed = 8
-accelRate = 0.4
-coastSpeed = 0.4
-decelRate = 0.1
-fireDistanceSquared = 1600.0 # 4 or 5 dragon widths
-
-# util functions
-
-
-#world's slowest vector algebra library ahoy
-root.length = (vec) ->
-  return Math.sqrt(vec.x * vec.x + vec.y * vec.y)
-
-# how brutally inefficient is doing this?
-root.normalize = (vec) ->
-    l = length(vec)
-    return {x:vec.x / l, y: vec.y / l}
-
-root.addVec = (a, b) ->
-    return {x: a.x + b.x, y: a.y + b.y}
-
-root.subtractVec = (a, b) ->
-    return {x: a.x - b.x, y: a.y - b.y}
-
-root.dot = (a, b) ->
-    return a.x * b.x + a.y * b.y
-
-# we're assuming the vectors are normalized for this?
-# nah, do the efficient case some other place
-root.angleBetween = (a, b) ->
-    na = normalize(a)
-    nb = normalize(b)
-    return Math.acos(dot(na,nb))
-
-root.distanceFrom = (a, b) ->
-    return length(subtractVec(b, a))
-
-root.distSquared = (a, b) ->
-    xdiff = b.x - a.x
-    ydiff = b.y - a.y
-    return xdiff * xdiff + ydiff * ydiff
-
-
-class Player
-  constructor: (opts) ->
-    @sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"]
-    @x = opts.x || 0
-    @y = opts.y || 0
-    @speed = opts.speed || 0
-    @angle = opts.angle || 0
-    @id = opts.id
-    @thrusting = opts.thrusting || false
-    @name = opts.name || "unknown"
-    @trail = []
-    @controls = opts.controls || {wPressed:false,aPressed:false,dPressed:false}
-    @breathing = opts.breathing || false
-
-  serialized: ->
-    data = {}
-    for field in @sync
-      data[field] = @[field]
-    data
-
-  gameTick: ->
-    scale_y = Math.cos @angle
-    scale_x = Math.sin @angle
-    velocity_x = @speed * scale_x
-    velocity_y = @speed * scale_y
-    @x -= velocity_x
-    @y -= velocity_y
-
-  updateTrail: ->
-    # stick an empty element in if no thrusting on
-    @trail.unshift if @thrusting then [@x, @y] else null
-    @trail.pop() if @trail.length > maxTrailLength
-
-class Self extends Player
-  constructor: ->
-    @turn = 0
-    @thrusting = false
-    @thrust = maxThrust # amount of thrust remaining
-    super
-
-  handleInput: ->
-    # update our angle if a turn key is on
-    if @controls.aPressed == true and @controls.dPressed == false
-      @angle += playerTurnRate
-    else if @controls.dPressed == true and @controls.aPressed == false
-      @angle -= playerTurnRate
-
-    # update our speed if thrusting is on
-
-    # use this again if we wanna have thrusting putter on when gas runs out
-    #if @thrust and @controls.wPressed
-    #   @thrusting = true
-    if @thrusting and @speed < maxSpeed
-      @speed += accelRate
-    else if @speed > coastSpeed
-      @speed -= decelRate
-
-  gameTick: ->
-    @handleInput()
-    super
-    if @thrusting and @thrust >= 1  # how can we be thrusting without any gas?
-      @thrust--
-    else
-      @thrust += thrustRegenRate
-      @thrust = Math.min(@thrust, maxThrust)
-      @thrusting = false
-
-  tryToBreathe: (player1, player2) ->
-    console.log "called try to breathe from #{player1} to #{player2}"
-    if player1 != player2 and distSquared(player1, player2) < fireDistanceSquared
-        vecToPlayer = subtractVec(player2, player1)
-        angleToPlayer = Math.atan2(vecToPlayer.x, vecToPlayer.y)
-        if Math.abs(angleToPlayer - @angle) < 0.8
-          @breathing = true
-
-
+exports.bang = -> new Universe()
 
 class Universe
   constructor: ->
@@ -196,7 +68,7 @@ class Universe
     state.y = @board.height / 2
     state.name = prompt "What is your dragon's name?"
 
-    @self = new Self state
+    @self = players.createSelf state
     @drawPlayer @self
     @enableControls()
 
@@ -248,7 +120,7 @@ class Universe
 
   addPlayer: (state) ->
     console.log "add player #{state.id}"
-    player = new Player(state)
+    player = players.createPlayer state
     @drawPlayer player
     @players[player.id] = player
 
@@ -296,9 +168,13 @@ class Universe
     @context.fillRect 0, 0, 8, 8
     @context.fillStyle = if player.thrusting then "red" else "rgba(255,255,255,0.5)"
     @context.fillRect 0, 8, 8, 2
+    if player.breathing
+      @context.fillStyle = "red"
+      @context.beginPath()
+      @context.moveTo(4,8)
+      @context.lineTo(12, -40)
+      @context.lineTo(-4,-40)
+      @context.fill()
     @context.restore()
 
-
-
-
-document.addEventListener "DOMContentLoaded", (-> universe = new Universe()), false
+window.Universe = Universe

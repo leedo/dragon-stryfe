@@ -1,25 +1,18 @@
 express = require 'express'
 io = require 'socket.io'
 fs = require 'fs'
+stitch = require 'stitch'
 
 client_id = 1
 app = express.createServer()
 socket = io.listen app
 players = []
-type_map =
-  js: "text/javascript"
-  css: "text/css"
-  html: "text/html"
 
+package = stitch.createPackage
+  paths: [__dirname]
+app.configure -> app.use express.static "#{__dirname}/../public"
+app.get "/client.js", package.createServer()
 app.get "/", (req, res) -> res.redirect("/game.html")
-
-app.get /^\/(.+\.(html|css|js))/, (req, res) ->
-  [file, ext] = req.params
-  fs.readFile file, (err, body) ->
-    if err
-      res.send 404
-    else
-      res.send body, 'Content-Type': type_map[ext], 200
 
 broadcast = (action, data) ->
   body = JSON.stringify {action: action, data: data}
