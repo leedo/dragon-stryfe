@@ -156,6 +156,7 @@ class Universe
         @context.fillRect x, y, 8, 8
 
   drawPlayer: (player) ->
+    @context.save()
     @drawTrail player
     [x, y] = [player.x, player.y]
     @context.translate x, y
