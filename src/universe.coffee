@@ -55,7 +55,7 @@ class Universe
     @socket.send @self.serialized()
 
   tickPlayer: (player) ->
-    flip = (@board.width <= player.position.x <= 0) or (@board.height >= player.position.y <= 0)
+    flip = player.position.x <= 0 or player.position.x >= @board.width or player.position.y >= @board.height or player.position.y <= 0
     player.position.angle += Math.PI if flip
 
     player.gameTick()
