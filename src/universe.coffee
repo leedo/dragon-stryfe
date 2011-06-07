@@ -116,8 +116,8 @@ class Universe
     @addPlayer(player) for player in new_players
 
   syncPlayer: (state) ->
-    return if state.id == @self.id
     player = @players[state.id]
+    return if !player or player.id == @self.id
     player.update state
 
   connect: ->
