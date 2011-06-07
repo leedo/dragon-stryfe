@@ -65,7 +65,7 @@ class Universe
 
   tickPlayer: (player) ->
     player.gameTick()
-    @drawPlayer player
+    player.draw @context
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
@@ -76,7 +76,6 @@ class Universe
     state.name = prompt "What is your dragon's name?"
 
     @self = players.createSelf state
-    @drawPlayer @self
     @enableControls()
 
     @gameTick()
@@ -128,7 +127,6 @@ class Universe
   addPlayer: (state) ->
     console.log "add player #{state.id}"
     player = players.createPlayer state
-    @drawPlayer player
     @players[player.id] = player
 
   addPlayers: (new_players) ->
@@ -153,36 +151,5 @@ class Universe
       @context.fillStyle = if i*10 <= @self.thrust then "red" else "#ccc"
       @context.fillRect x, y, 20, 5
       y -= 10
-
-  drawTrail: (player) ->
-    opacity = 0.3
-    for coord in player.trail
-      opacity -= 0.01
-      if coord
-        [x, y] = coord
-        @context.fillStyle = "rgba(255,255,255,#{opacity})"
-        @context.fillRect x, y, 8, 8
-
-  drawPlayer: (player) ->
-    @context.save()
-    @drawTrail player
-    [x, y] = [player.x, player.y]
-    @context.translate x, y
-    @context.fillStyle = "#fff"
-    @context.fillText player.name, -4, -15
-    @context.rotate -player.angle
-    @context.translate -4, -3
-    @context.fillStyle = "#fff"
-    @context.fillRect 0, 0, 8, 8
-    @context.fillStyle = if player.thrusting then "red" else "rgba(255,255,255,0.5)"
-    @context.fillRect 0, 8, 8, 2
-    if player.breathing
-      @context.fillStyle = "red"
-      @context.beginPath()
-      @context.moveTo(4,8)
-      @context.lineTo(12, -40)
-      @context.lineTo(-4,-40)
-      @context.fill()
-    @context.restore()
 
 window.Universe = Universe

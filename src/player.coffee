@@ -92,3 +92,37 @@ class Self extends Player
       @thrust = Math.min(@thrust, maxThrust)
       @thrusting = false
 
+  drawTrail: (context) ->
+    opacity = 0.3
+    for coord in @trail
+      opacity -= 0.01
+      if coord
+        [x, y] = coord
+        context.fillStyle = "rgba(255,255,255,#{opacity})"
+        context.fillRect x, y, 8, 8
+
+  drawShip: (context) ->
+    context.fillStyle = "#fff"
+    context.fillRect 0, 0, 8, 8
+    context.fillStyle = if @thrusting then "red" else "rgba(255,255,255,0.5)"
+    context.fillRect 0, 8, 8, 2
+
+  drawFire: (context) ->
+    context.fillStyle = "red"
+    context.beginPath()
+    context.moveTo(4,8)
+    context.lineTo(12, -40)
+    context.lineTo(-4,-40)
+    context.fill()
+
+  draw: (context) ->
+    context.save()
+    @drawTrail context
+    context.translate @x, @y
+    context.fillStyle = "#fff"
+    context.fillText @name, -4, -15
+    context.rotate -@angle
+    context.translate -4, -3
+    @drawFire context if @breathing
+    @drawShip context
+    context.restore()
