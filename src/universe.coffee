@@ -22,8 +22,7 @@ class Universe
   gameTick: ->
     @tick_count++
     @board.width = @board.width
-    @drawInfo()
-    @drawThrustMeter()
+    @drawOverlay()
     @context.save()
     @tickPlayer player for id, player of @players
 
@@ -31,7 +30,19 @@ class Universe
 
     setTimeout (=> @gameTick()), 40
 
-  drawInfo: ->
+  drawOverlay: ->
+    @drawStats()
+    @drawEnergyMeter()
+    @drawPlayerList()
+
+  drawPlayerList: ->
+    [x, y] = [@board.width - 100, 100]
+    @context.fillStyle = "#fff"
+    for id, player of @players
+      @context.fillText "#{player.damage} #{player.name}", x, y
+      y += 10
+
+  drawStats: ->
     @context.fillStyle = "#fff"
     @context.fillText "x: #{parseInt @self.position.x}", 10, 10
     @context.fillText "y: #{parseInt @self.position.y}", 10, 20
@@ -44,9 +55,8 @@ class Universe
     @socket.send @self.serialized()
 
   tickPlayer: (player) ->
-    # checks to keep people in the visible area
-    if player.position.x < 0  || player.position.y < 0 || player.position.x > @board.width || player.position.y > @board.height
-        player.position.angle += Math.PI
+    flip = (@board.width <= player.position.x <= 0) or (@board.height >= player.position.y <= 0)
+    player.position.angle += Math.PI if flip
 
     player.gameTick()
     player.tryToBreath(target) for id, target of @players
@@ -131,7 +141,7 @@ class Universe
       req = JSON.parse msg
       @[ req.action ](req.data)
 
-  drawThrustMeter: ->
+  drawEnergyMeter: ->
     [x, y] = [@board.width - 30, @board.height - 10]
     for i in [0..10]
       @context.fillStyle = if i*10 <= @self.energy then "red" else "#ccc"

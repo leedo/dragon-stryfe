@@ -57,9 +57,11 @@ module.exports  = class Player
 
   gameTick: ->
     @breathing = false
+
     @handleInput()
     @updatePosition()
     @updateTrail()
+
     if @thrusting()  # how can we be thrusting without any gas?
       @energy--
     else
@@ -72,7 +74,9 @@ module.exports  = class Player
     velocity_x = @speed * scale_x
     velocity_y = @speed * scale_y
     @position.x -= velocity_x
+    @position.x = Math.min(@max_x, Math.max(@position.x, 0))
     @position.y -= velocity_y
+    @position.y = Math.min(@max_y, Math.max(@position.y, 0))
 
   updateTrail: ->
     # stick an empty element in if no thrusting on
