@@ -2,10 +2,10 @@ exports.createPlayer = (opts) -> new Player opts
 exports.createSelf = (opts) -> new Self opts
 
 # some definitions for the tweakable bits
-playerTurnRate = 0.05
+playerTurnRate = 0.1
 util = require 'util'
 
-maxThrust = 100.0
+maxThrust = 300.0
 thrustRegenRate = 0.25
 maxTrailLength = 15
 maxSpeed = 8
