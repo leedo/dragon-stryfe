@@ -27,13 +27,6 @@ socket.on "connection", (client) ->
     client: client
     state:
       id: client_id++
-      name: client_id
-      speed: 0
-      angle: 0
-      x: 0
-      y: 0
-      trail: []
-      thrusting: false
 
   # send client their starting position and id
   send(self, "initSelf", self.state)
@@ -46,8 +39,7 @@ socket.on "connection", (client) ->
 
   client.on "message", (msg) ->
     # update our state and broadcast it
-    for field in ["name", "speed", "angle", "x", "y", "trail", "thrusting"]
-      self.state[field] = msg[field]
+    self.state = msg
     broadcast("syncPlayer", self.state)
 
   client.on "disconnect", ->

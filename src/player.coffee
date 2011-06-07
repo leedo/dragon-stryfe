@@ -1,62 +1,93 @@
-exports.createPlayer = (opts) -> new Player opts
-exports.createSelf = (opts) -> new Self opts
+ControlState = require "controlstate"
+PositionState = require "positionstate"
+constants = require "constants"
 
 # some definitions for the tweakable bits
-playerTurnRate = 0.1
 util = require 'util'
 
-maxThrust = 300.0
-thrustRegenRate = 0.25
-maxTrailLength = 15
-maxSpeed = 8
-accelRate = 0.4
-coastSpeed = 0.4
-decelRate = 0.1
-fireDistanceSquared = 1600.0 # 4 or 5 dragon widths
-
-
-class Player
+module.exports  = class Player
   constructor: (opts) ->
-    @sync = ["name", "speed", "angle", "x", "y", "trail", "thrusting"]
-    @x = opts.x || 0
-    @y = opts.y || 0
-    @speed = opts.speed || 0
-    @angle = opts.angle || 0
     @id = opts.id
-    @thrusting = opts.thrusting || false
-    @name = opts.name || "unknown"
+    @breathing = false
+
+    @max_x = opts.max_x
+    @max_y = opts.max_y
+
     @trail = []
-    @controls = opts.controls || {wPressed:false,aPressed:false,dPressed:false}
-    @breathing = opts.breathing || false
-    @damage = opts.damage || 0
+    @update(opts)
 
   serialized: ->
-    data = {}
-    for field in @sync
-      data[field] = @[field]
-    data
+    data =
+      controls: @controls
+      position: @position
+      speed: @speed
+      energy: @energy
+      id: @id
+      name: @name
+      damage: @damage
+
+  update: (opts) ->
+    @controls = opts.controls || new ControlState opts
+    @position = opts.position || new PositionState opts
+    @speed    = opts.speed    || 0
+    @energy   = opts.energy   || constants.maxEnergy
+    @name     = opts.name     || "unknown"
+    @damage   = opts.damage   || 0
+
+  handleInput: ->
+    if @controls.wPressed and @speed < constants.maxSpeed
+      @speed += constants.accelRate
+    else if @speed > constants.coastSpeed
+      @speed -= constants.decelRate
+
+    # update our angle if a turn key is on
+    if @controls.aPressed and !@controls.dPressed
+      @position.angle += constants.playerTurnRate
+    else if @controls.dPressed and !@controls.aPressed
+      @position.angle -= constants.playerTurnRate
+
+    # constrain angle to the range [0 .. 2*PI]
+    if @position.angle > Math.PI * 2.0
+       @position.angle -= Math.PI * 2.0
+    if @position.angle < 0.0
+       @position.angle += Math.PI * 2.0
+
+  thrusting: ->
+    @controls.wPressed and @energy >= 1
 
   gameTick: ->
-    scale_y = Math.cos @angle
-    scale_x = Math.sin @angle
+    @breathing = false
+    @handleInput()
+    @updatePosition()
+    @updateTrail()
+    if @thrusting()  # how can we be thrusting without any gas?
+      @energy--
+    else
+      @energy += constants.energyRegenRate
+      @energy = Math.min(@energy, constants.maxEnergy)
+
+  updatePosition: ->
+    scale_y = Math.cos @position.angle
+    scale_x = Math.sin @position.angle
     velocity_x = @speed * scale_x
     velocity_y = @speed * scale_y
-    @x -= velocity_x
-    @y -= velocity_y
+    @position.x -= velocity_x
+    @position.y -= velocity_y
 
   updateTrail: ->
     # stick an empty element in if no thrusting on
-    @trail.unshift if @thrusting then [@x, @y] else null
-    @trail.pop() if @trail.length > maxTrailLength
+    @trail.unshift if @thrusting() then [@position.x, @position.y] else null
+    @trail.pop() if @trail.length > constants.maxTrailLength
 
   # can I not pass in both players?  does it really matter?
-  tryToBreathe: (player1, player2) ->
-    if player1 != player2 and util.distSquared(player1, player2) < fireDistanceSquared
-        vecToPlayer = util.subtractVec(player2, player1)
-        angleToPlayer = Math.PI + Math.atan2(vecToPlayer.x, vecToPlayer.y)
-        if Math.abs(angleToPlayer - player1.angle) < 0.8
-          player1.breathing = angleToPlayer
-          player2.damage++
+  tryToBreath: (target) ->
+    return if target.id == @id
+    if util.distSquared(@position, target.position) < constants.fireDistanceSquared
+      vecToPlayer = util.subtractVec(target.position, @position)
+      angleToPlayer = Math.PI + Math.atan2(vecToPlayer.x, vecToPlayer.y)
+      if Math.abs(angleToPlayer - @position.angle) < 0.8
+        @breathing = angleToPlayer
+        target.damage++
 
   drawTrail: (context) ->
     opacity = 0.3
@@ -70,7 +101,7 @@ class Player
   drawShip: (context) ->
     context.fillStyle = "#fff"
     context.fillRect 0, 0, 8, 8
-    context.fillStyle = if @thrusting then "red" else "rgba(255,255,255,0.5)"
+    context.fillStyle = if @thrusting() then "red" else "rgba(255,255,255,0.5)"
     context.fillRect 0, 8, 8, 2
 
   drawFire: (context) ->
@@ -84,46 +115,11 @@ class Player
   draw: (context) ->
     context.save()
     @drawTrail context
-    context.translate @x, @y
+    context.translate @position.x, @position.y
     context.fillStyle = "#fff"
     context.fillText @name, -4, -15
-    context.rotate -@angle
+    context.rotate -@position.angle
     context.translate -4, -3
     @drawFire context if @breathing
     @drawShip context
     context.restore()
-
-
-class Self extends Player
-  constructor: ->
-    @turn = 0
-    @thrusting = false
-    @thrust = maxThrust # amount of thrust remaining
-    super
-
-  handleInput: ->
-    # update our angle if a turn key is on
-    if @controls.aPressed == true and @controls.dPressed == false
-      @angle += playerTurnRate
-    else if @controls.dPressed == true and @controls.aPressed == false
-      @angle -= playerTurnRate
-
-    # update our speed if thrusting is on
-
-    # use this again if we wanna have thrusting putter on when gas runs out
-    #if @thrust and @controls.wPressed
-    #   @thrusting = true
-    if @thrusting and @speed < maxSpeed
-      @speed += accelRate
-    else if @speed > coastSpeed
-      @speed -= decelRate
-
-  gameTick: ->
-    @handleInput()
-    super
-    if @thrusting and @thrust >= 1  # how can we be thrusting without any gas?
-      @thrust--
-    else
-      @thrust += thrustRegenRate
-      @thrust = Math.min(@thrust, maxThrust)
-      @thrusting = false
