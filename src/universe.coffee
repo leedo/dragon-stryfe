@@ -31,7 +31,15 @@ class Universe
     if  @self.x < 0  || @self.y < 0 || @self.x > @board.width || @self.y > @board.height
         @self.angle += Math.PI
 
+    # really don't like poking the breathing from out here...  pass in the array of players?
+    # also not digging @self not being in the player array
     @self.breathing = false
+    for id1, attacker of @players
+      attacker.breathing = false
+      attacker.tryToBreathe(attacker, @self)
+      for id2, target of @players
+        #console.log("#{attacker} is trying to attack #{target}")
+        attacker.tryToBreathe(attacker, target)
     @self.tryToBreathe(@self, player) for id, player of @players
 
     # constrain angle to the range [0 .. 2*PI]
