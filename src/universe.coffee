@@ -7,6 +7,7 @@ class Universe
   constructor: ->
     @self
     @players = {}
+    @tick_count = 0
 
     @board = document.getElementById "universe"
     @board.width = document.width
@@ -19,11 +20,14 @@ class Universe
     @connect()
 
   gameTick: ->
+    @tick_count++
     @board.width = @board.width
     @drawInfo()
     @drawThrustMeter()
     @context.save()
     @tickPlayer player for id, player of @players
+
+    @syncSelf() if @tick_count % 25
 
     setTimeout (=> @gameTick()), 40
 
