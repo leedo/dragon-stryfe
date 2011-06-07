@@ -58,40 +58,6 @@ class Player
           player1.breathing = angleToPlayer
           player2.damage++
 
-class Self extends Player
-  constructor: ->
-    @turn = 0
-    @thrusting = false
-    @thrust = maxThrust # amount of thrust remaining
-    super
-
-  handleInput: ->
-    # update our angle if a turn key is on
-    if @controls.aPressed == true and @controls.dPressed == false
-      @angle += playerTurnRate
-    else if @controls.dPressed == true and @controls.aPressed == false
-      @angle -= playerTurnRate
-
-    # update our speed if thrusting is on
-
-    # use this again if we wanna have thrusting putter on when gas runs out
-    #if @thrust and @controls.wPressed
-    #   @thrusting = true
-    if @thrusting and @speed < maxSpeed
-      @speed += accelRate
-    else if @speed > coastSpeed
-      @speed -= decelRate
-
-  gameTick: ->
-    @handleInput()
-    super
-    if @thrusting and @thrust >= 1  # how can we be thrusting without any gas?
-      @thrust--
-    else
-      @thrust += thrustRegenRate
-      @thrust = Math.min(@thrust, maxThrust)
-      @thrusting = false
-
   drawTrail: (context) ->
     opacity = 0.3
     for coord in @trail
@@ -126,3 +92,38 @@ class Self extends Player
     @drawFire context if @breathing
     @drawShip context
     context.restore()
+
+
+class Self extends Player
+  constructor: ->
+    @turn = 0
+    @thrusting = false
+    @thrust = maxThrust # amount of thrust remaining
+    super
+
+  handleInput: ->
+    # update our angle if a turn key is on
+    if @controls.aPressed == true and @controls.dPressed == false
+      @angle += playerTurnRate
+    else if @controls.dPressed == true and @controls.aPressed == false
+      @angle -= playerTurnRate
+
+    # update our speed if thrusting is on
+
+    # use this again if we wanna have thrusting putter on when gas runs out
+    #if @thrust and @controls.wPressed
+    #   @thrusting = true
+    if @thrusting and @speed < maxSpeed
+      @speed += accelRate
+    else if @speed > coastSpeed
+      @speed -= decelRate
+
+  gameTick: ->
+    @handleInput()
+    super
+    if @thrusting and @thrust >= 1  # how can we be thrusting without any gas?
+      @thrust--
+    else
+      @thrust += thrustRegenRate
+      @thrust = Math.min(@thrust, maxThrust)
+      @thrusting = false
