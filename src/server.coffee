@@ -48,7 +48,7 @@ app.get "/twitter_login", (req, res) ->
       req.session.oa = oa
       req.session.oauth_token = token
       req.session.oatuh_token_secret = token_secret
-      res.redirect "https://api.twitter.com/oauth/authorize?oauth_token=#{token}"
+      res.redirect "https://twitter.com/oauth/authenticate?oauth_token=#{token}"
 
 app.get "/login_success", (req, res) ->
   oa = new OAuth req.session.oa._requestUrl,
