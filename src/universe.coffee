@@ -10,8 +10,6 @@ class Universe
     @tick_count = 0
 
     @board = document.getElementById "universe"
-    @board.width = document.width
-    @board.height = document.height
     @context = @board.getContext "2d"
 
     @is_drawing
