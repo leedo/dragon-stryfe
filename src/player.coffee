@@ -81,9 +81,10 @@ module.exports  = class Player
     @position.y = Math.min(@max_y, Math.max(@position.y, 0))
 
   updateTrail: ->
-    # stick an empty element in if no thrusting on
-    @trail.unshift if @thrusting() then [@position.x, @position.y] else null
-    @trail.pop() if @trail.length > constants.maxTrailLength
+    dist = if @trail.length then util.distanceFrom(@position, @trail[0]) else 0
+    if !@trail.length or dist > 4
+      @trail.unshift {x: @position.x, y: @position.y, dist: dist, angle: @position.angle}
+      @trail.pop() if @trail.length > constants.maxTrailLength
 
   # can I not pass in both players?  does it really matter?
   tryToBreath: (target) ->
@@ -95,20 +96,22 @@ module.exports  = class Player
         @breathing = angleToPlayer
         target.damage++
 
-  drawTrail: (context) ->
-    opacity = 0.3
+  drawTail: (context) ->
+    context.fillStyle = "#fff"
+    width = 4
     for coord in @trail
-      opacity -= 0.01
-      if coord
-        [x, y] = coord
-        context.fillStyle = "rgba(255,255,255,#{opacity})"
-        context.fillRect x, y, 8, 8
+      if coord and prev
+        context.save()
+        context.translate coord.x, coord.y
+        context.rotate -coord.angle
+        context.fillRect 0, 0, width, coord.dist + 2
+        context.restore()
+        width -= 0.2
+      prev = coord
 
   drawShip: (context) ->
     context.fillStyle = "#fff"
-    context.fillRect 0, 0, 8, 8
-    context.fillStyle = if @thrusting() then "red" else "rgba(255,255,255,0.5)"
-    context.fillRect 0, 8, 8, 2
+    context.fillRect 0, 0, 8, 12
 
   drawFire: (context) ->
     width = 8
@@ -143,7 +146,7 @@ module.exports  = class Player
     context.restore()
 
   draw: (context) ->
-    @drawTrail context
+    @drawTail context
     context.save()
     context.translate @position.x, @position.y
     context.rotate -@position.angle
