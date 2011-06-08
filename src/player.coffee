@@ -109,21 +109,45 @@ module.exports  = class Player
     context.fillRect 0, 8, 8, 2
 
   drawFire: (context) ->
-    context.fillStyle = "red"
-    context.beginPath()
-    context.moveTo(4,8)
-    context.lineTo(12, -40)
-    context.lineTo(-4,-40)
-    context.fill()
+    width = 8
+    blocksize = 8
+    rate = 1.8
+    opacity = 0.8
+
+    context.save()
+    context.translate 0, -10
+
+    context.fillStyle = "rgba(0,"
+
+    for dist in [0 .. 4]
+      blocks = Math.ceil(width / blocksize)
+      x = -(width / 2)
+      y = -(blocksize * dist)
+      for block in [0 .. blocks]
+        context.fillStyle = "rgba(255,127,0,#{opacity})"
+        context.fillRect x + (block * blocksize), y, blocksize+1, blocksize+1
+      width = width * rate
+      opacity -= 0.20
+
+    context.restore()
+
+  drawName: (context) ->
+    context.save()
+    context.translate @position.x, @position.y
+    context.fillStyle = "#000"
+    context.fillText @name, -5, -15
+    context.fillText @name, -3, -17
+    context.fillStyle = "#fff"
+    context.fillText @name, -4, -16
+    context.restore()
 
   draw: (context) ->
     context.save()
     @drawTrail context
     context.translate @position.x, @position.y
-    context.fillStyle = "#fff"
-    context.fillText @name, -4, -15
     context.rotate -@position.angle
     context.translate -4, -3
-    @drawFire context if @breathing
     @drawShip context
+    @drawFire context if @breathing
     context.restore()
+    @drawName(context)

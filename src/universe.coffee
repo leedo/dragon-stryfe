@@ -101,6 +101,8 @@ class Universe
           @self.controls.dPressed = false
         when 65
           @self.controls.aPressed = false
+        when 32
+          @self.controls.spacePressed = false
       @syncSelf()
     , false
     document.addEventListener "keydown", (e) =>
@@ -111,6 +113,8 @@ class Universe
           @self.controls.dPressed = true
         when 65
           @self.controls.aPressed = true
+        when 32
+          @self.controls.spacePressed = true
       @syncSelf()
     , false
 
