@@ -35,6 +35,8 @@ module.exports  = class Player
     @damage   = opts.damage   || 0
 
   handleInput: ->
+    if @controls.spacePressed
+      @breathing = Math.PI
     if @controls.wPressed and @speed < constants.maxSpeed
       @speed += constants.accelRate
     else if @speed > constants.coastSpeed
@@ -112,22 +114,21 @@ module.exports  = class Player
     width = 8
     blocksize = 8
     rate = 1.8
-    opacity = 0.8
+    transparency = 0.1
 
     context.save()
     context.translate 0, -10
-
-    context.fillStyle = "rgba(0,"
 
     for dist in [0 .. 4]
       blocks = Math.ceil(width / blocksize)
       x = -(width / 2)
       y = -(blocksize * dist)
+      transparency += 0.15
       for block in [0 .. blocks]
+        opacity = (parseInt(Math.random() * 10) / 10) - transparency
         context.fillStyle = "rgba(255,127,0,#{opacity})"
         context.fillRect x + (block * blocksize), y, blocksize+1, blocksize+1
       width = width * rate
-      opacity -= 0.20
 
     context.restore()
 
@@ -142,8 +143,8 @@ module.exports  = class Player
     context.restore()
 
   draw: (context) ->
-    context.save()
     @drawTrail context
+    context.save()
     context.translate @position.x, @position.y
     context.rotate -@position.angle
     context.translate -4, -3

@@ -69,6 +69,7 @@ class Universe
     state.x = @board.width / 2
     state.y = @board.height / 2
     state.name = prompt "What is your dragon's name?"
+    state.name = state.name.substr 0, 16
 
     @self = @addPlayer state
 
