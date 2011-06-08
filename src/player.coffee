@@ -34,8 +34,17 @@ module.exports  = class Player
     @energy   = opts.energy   || constants.maxEnergy
     @name     = opts.name     || "unknown"
     @damage   = opts.damage   || 0
+    @dead     = opts.dead     || 0  # dead if != 0, else ticks since dead
+    @flash    = opts.flash    || 0 # draw a flash around the dragon this turn (player respawn, what else?)
 
   handleInput: ->
+    # don't move if you're dead
+    if @dead != 0
+      @speed = 0
+      @position.angle = Math.PI * @dead / 10.0
+      @dead++
+      return
+
     if @controls.spacePressed
       @breathing = Math.PI
     if @controls.wPressed and @speed < constants.maxSpeed
@@ -87,9 +96,8 @@ module.exports  = class Player
       @trail.unshift {x: @position.x, y: @position.y, dist: dist, angle: @position.angle}
       @trail.pop() if @trail.length > constants.maxTrailLength
 
-  # can I not pass in both players?  does it really matter?
   tryToBreath: (target) ->
-    return if target.id == @id
+    return if target.id == @id or @dead
     if util.distSquared(@position, target.position) < constants.fireDistanceSquared
       vecToPlayer = util.subtractVec(target.position, @position)
       angleToPlayer = Math.PI + Math.atan2(vecToPlayer.x, vecToPlayer.y)
@@ -98,6 +106,8 @@ module.exports  = class Player
         target.damage++
 
   drawTail: (context) ->
+    # do we wanna draw the tail if we're dead? nope
+    # but we zero out the tail at death
     context.fillStyle = "#fff"
     width = 3
     for coord in @trail
@@ -151,6 +161,20 @@ module.exports  = class Player
     context.translate @position.x, @position.y
     context.rotate -@position.angle
     context.translate -4, -3
+    # does scaling not work with bitmaps?
+    #if @dead
+      #scaleFactor = 1.0 - (@dead / 50.0)
+      #context.scale scaleFactor scaleFactor
+    if @flash > 4
+      #should this be a different color?
+      oldfillstyle = @context.fillstyle
+      @context.fillstyle = "#ff0"
+      @context.arc @self.position.x @self.position.y 30 0 (2 * Math.PI) false
+      @context.fill()
+      @context.fillstyle = oldfillstyle
+      @flash++
+    else if flash >= 4
+      @flash = 0
     @drawShip context
     @drawFire context if @breathing
     context.restore()

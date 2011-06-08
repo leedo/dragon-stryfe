@@ -1,5 +1,6 @@
 Player = require 'player'
 util = require 'util'
+constants = require 'constants'
 
 exports.bang = -> new Universe()
 
@@ -26,7 +27,24 @@ class Universe
     @context.save()
     @tickPlayer player for id, player of @players
 
-    @syncSelf() if @tick_count % 25
+    # I'm the authoritative source on whether I'm dead
+    # make people vote to find cheaters later?
+    if @self.damage > constants.deadlyDamage or @self.dead
+      @self.dead++
+      if @self.dead == 1
+        console.log "#{@self.name} died at tick #{@tick_count}"
+        @self.damage = "dead"
+        @self.trail = []
+      else if @self.dead >= constants.deathAnimationTime
+        @self.damage = 0
+        @self.dead = 0
+        @self.position.x = Math.random() * @board.width
+        @self.position.y = Math.random() * @board.height
+        @self.flash = 1
+        # hacky...  should draw this in the dragon drawing routine?
+        # update some kinda scoreboard?
+
+    @syncSelf() if @tick_count % constants.syncTimer
 
     setTimeout (=> @gameTick()), 40
 
@@ -50,6 +68,7 @@ class Universe
     @context.fillText "speed: #{@self.speed}", 10, 40
     @context.fillText "thrust: #{@self.energy}", 10, 50
     @context.fillText "id: #{@self.id}", 10, 60
+    @context.fillText "dead: #{@self.dead}", 10, 70
 
   syncSelf: ->
     @socket.send @self.serialized()

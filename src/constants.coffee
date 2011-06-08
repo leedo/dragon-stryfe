@@ -8,3 +8,6 @@ module.exports =
   decelRate: 0.1
   fireDistanceSquared: 1600.0 # 4 or 5 dragon widths
   playerTurnRate: 0.1
+  deadlyDamage: 100
+  deathAnimationTime: 50
+  syncTimer: 25
