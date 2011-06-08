@@ -9,6 +9,7 @@ module.exports  = class Player
   constructor: (opts) ->
     @id = opts.id
     @breathing = false
+    @img = document.getElementById("dragon")
 
     @max_x = opts.max_x
     @max_y = opts.max_y
@@ -98,7 +99,7 @@ module.exports  = class Player
 
   drawTail: (context) ->
     context.fillStyle = "#fff"
-    width = 4
+    width = 3
     for coord in @trail
       if coord and prev
         context.save()
@@ -110,8 +111,7 @@ module.exports  = class Player
       prev = coord
 
   drawShip: (context) ->
-    context.fillStyle = "#fff"
-    context.fillRect 0, 0, 8, 12
+    context.drawImage(@img, -10, 0)
 
   drawFire: (context) ->
     width = 8
