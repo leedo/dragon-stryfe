@@ -33,6 +33,7 @@ class Universe
         console.log "#{@self.name} died at tick #{@tick_count}"
         @self.damage = "dead"
         @self.trail = []
+        @self.updateTrail()
       else if @self.dead >= constants.deathAnimationTime
         @self.damage = 0
         @self.dead = 0
