@@ -43,3 +43,15 @@ canvas#universe {
 
 div#container {
 }
+
+div#login {
+  width: 300px;
+  margin: 0 auto;
+  margin-top: 50px;
+  text-align: center;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
