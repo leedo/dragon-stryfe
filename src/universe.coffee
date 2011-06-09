@@ -2,13 +2,12 @@ Player = require 'player'
 util = require 'util'
 constants = require 'constants'
 
-exports.bang = -> new Universe()
-
-class Universe
-  constructor: ->
+module.exports = class Universe
+  constructor: (starting_name) ->
     @self
     @players = {}
     @tick_count = 0
+    @starting_name = starting_name
 
     @board = document.getElementById "universe"
     @context = @board.getContext "2d"
@@ -85,8 +84,11 @@ class Universe
     # just override the default with center
     state.x = @board.width / 2
     state.y = @board.height / 2
-    state.name = prompt "What is your dragon's name?"
-    state.name = state.name.substr 0, 16
+    if !@starting_name
+      state.name = prompt "What is your dragon's name?"
+      state.name = state.name.substr 0, 16
+    else
+      state.name = @starting_name
 
     @self = @addPlayer state
 
@@ -169,5 +171,3 @@ class Universe
       @context.fillStyle = if i*10 <= @self.energy then "red" else "#ccc"
       @context.fillRect x, y, 20, 5
       y -= 10
-
-window.Universe = Universe

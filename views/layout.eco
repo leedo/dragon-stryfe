@@ -4,9 +4,9 @@
   </head>
   <body>
     <div id="container">
+      <img src="/dragon.png" style="position:absolute;left:-100px" id="dragon">
       <h1>ᴅ ʀ ᴀ ɢ ᴏ ɴ s ᴛ ʀ ʏ ƒ ᴇ</h1>
-      <button><a href="/twitter_login">Login with Twitter</a></button>
-      <button><a href="/game">Play Anonymously</a></button>
+      <%- @body %>
     </div>
   </body>
 </html>

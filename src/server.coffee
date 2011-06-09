@@ -10,6 +10,7 @@ socket = io.listen app
 players = []
 package = stitch.createPackage paths: [__dirname]
 
+app.set "view engine", "eco"
 app.configure ->
   app.use express.logger()
   app.use express.bodyParser()
@@ -26,10 +27,10 @@ app.get "/", (req, res) ->
     res.redirect "/game"
 
 app.get "/game", (req, res) ->
-  res.sendfile "templates/game.html"
+  res.render "game", {screen_name: req.session.screen_name}
 
 app.get "/login", (req, res) ->
-  res.sendfile "templates/login.html"
+  res.render "login"
 
 app.get "/twitter_login", (req, res) ->
   oa = new OAuth "https://api.twitter.com/oauth/request_token",
@@ -69,7 +70,14 @@ app.get "/login_success", (req, res) ->
       else
         req.session.oauth_access_token = access_token
         req.session.oauth_access_token_secret = access_token_secret
-        res.redirect "/"
+        oa.getProtectedResource "http://api.twitter.com/1/account/verify_credentials.json",
+          "GET",
+          req.session.oauth_access_token,
+          req.session.oauth_access_token_secret,
+          (error, data, response) ->
+            feed = JSON.parse(data)
+            req.session.screen_name = feed.screen_name if feed.screen_name
+            res.redirect "/"
 
 broadcast = (action, data) ->
   body = JSON.stringify {action: action, data: data}
