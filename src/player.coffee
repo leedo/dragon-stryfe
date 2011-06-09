@@ -106,7 +106,7 @@ module.exports  = class Player
       angleToPlayer = Math.PI + Math.atan2(vecToPlayer.x, vecToPlayer.y)
       if Math.abs(angleToPlayer - @position.angle) < 0.8
         @breathing = angleToPlayer
-        target.damage++
+        target.damage += Math.max(@speed, 0)
 
   drawTail: (context) ->
     # do we wanna draw the tail if we're dead? nope
