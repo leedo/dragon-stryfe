@@ -52,7 +52,7 @@ module.exports = class Universe
   updatePowerups: ->
     if @powerups.length < 1
       # Make a powerup!
-      if (Math.random() * 10000) > 9990
+      if (Math.random() * 10000) > 9950
         @powerups.push {
           x: Math.random() * @board.width - 5
           y: Math.random() * @board.height - 5
@@ -62,7 +62,7 @@ module.exports = class Universe
     
     for id, player of @players
       for powerup in @powerups
-        if player.position.x > (powerup.x - 5) && player.position.x < (powerup.x + 5) && player.position.y > (powerup.y - 5) && player.position.y < (powerup.y + 5)
+        if (player.position.x + 10) > (powerup.x - 5) && (player.position.x - 10) < (powerup.x + 5) && (player.position.y + 10) > (powerup.y - 5) && (player.position.y - 10) < (powerup.y + 5)
           @powerups.pop()
           player.energy = constants.maxEnergy
           
