@@ -23,26 +23,6 @@ module.exports = class Universe
     @drawOverlay()
     @context.save()
     @tickPlayer player for id, player of @players
-
-
-    # I'm the authoritative source on whether I'm dead
-    # make people vote to find cheaters later?
-    if @self.damage > constants.deadlyDamage or @self.dead
-      @self.dead++
-      if @self.dead == 1
-        console.log "#{@self.name} died at tick #{@tick_count}"
-        @self.damage = "dead"
-        @self.trail = []
-        @self.updateTrail()
-      else if @self.dead >= constants.deathAnimationTime
-        @self.damage = 0
-        @self.dead = 0
-        @self.position.x = Math.random() * @board.width
-        @self.position.y = Math.random() * @board.height
-        @self.flash = 1
-        # hacky...  should draw this in the dragon drawing routine?
-        # update some kinda scoreboard?
-
     @syncSelf() if @tick_count % constants.syncTimer
 
     setTimeout (=> @gameTick()), 40

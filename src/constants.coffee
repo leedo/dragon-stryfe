@@ -1,9 +1,11 @@
 module.exports =
+  universeWidth: 800
+  universeHeight: 600
   maxEnergy: 300.0
   energyRegenRate: 0.25
   maxTrailLength: 10
   maxSpeed: 8
-  minSpeed: 0
+  minSpeed: -1
   accelRate: 0.4
   coastSpeed: 0.4
   decelRate: 0.1

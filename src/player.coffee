@@ -10,10 +10,6 @@ module.exports  = class Player
     @id = opts.id
     @breathing = false
     @img = document.getElementById("dragon")
-
-    @max_x = opts.max_x
-    @max_y = opts.max_y
-
     @trail = []
     @update(opts)
 
@@ -67,21 +63,43 @@ module.exports  = class Player
     if @position.angle < 0.0
        @position.angle += Math.PI * 2.0
 
-  thrusting: ->
-    @controls.wPressed and @energy >= 1
-
-  gameTick: ->
-    @breathing = false
-
-    @handleInput()
-    @updatePosition()
-    @updateTrail()
-
+  updateEnergy: ->
     if @thrusting()  # how can we be thrusting without any gas?
       @energy--
     else
       @energy += constants.energyRegenRate
       @energy = Math.min(@energy, constants.maxEnergy)
+
+  thrusting: ->
+    @controls.wPressed and @energy >= 1
+
+  handleDamage: ->
+    # I'm the authoritative source on whether I'm dead
+    # make people vote to find cheaters later?
+    if @damage > constants.deadlyDamage or @dead
+      @dead++
+      if @dead == 1
+        console.log "#{@self.name} died at tick #{@tick_count}"
+        @damage = "dead"
+        @trail = []
+      else if @dead >= constants.deathAnimationTime
+        @damage = 0
+        @dead = 0
+        @position.x = Math.random() * constants.universeWidth
+        @position.y = Math.random() * constants.universeHeight
+        @flash = 1
+        # hacky...  should draw this in the dragon drawing routine?
+        # update some kinda scoreboard?
+
+  gameTick: ->
+    @handleDamage()
+    return if @dead
+
+    @breathing = false
+    @handleInput()
+    @updatePosition()
+    @updateTrail()
+    @updateEnergy()
 
   updatePosition: ->
     scale_y = Math.cos @position.angle
@@ -89,9 +107,9 @@ module.exports  = class Player
     velocity_x = @speed * scale_x
     velocity_y = @speed * scale_y
     @position.x -= velocity_x
-    @position.x = Math.min(@max_x, Math.max(@position.x, 0))
+    @position.x = Math.min(constants.universeWidth, Math.max(@position.x, 0))
     @position.y -= velocity_y
-    @position.y = Math.min(@max_y, Math.max(@position.y, 0))
+    @position.y = Math.min(constants.universeHeight, Math.max(@position.y, 0))
 
   updateTrail: ->
     dist = if @trail.length then util.distanceFrom(@position, @trail[0]) else 0
