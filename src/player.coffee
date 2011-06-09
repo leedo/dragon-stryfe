@@ -169,11 +169,11 @@ module.exports  = class Player
       #should this be a different color?
       oldfillstyle = @context.fillstyle
       @context.fillstyle = "#ff0"
-      @context.arc @self.position.x @self.position.y 30 0 (2 * Math.PI) false
+      @context.arc @self.position.x, @self.position.y, 30, 0, (2 * Math.PI), false
       @context.fill()
       @context.fillstyle = oldfillstyle
       @flash++
-    else if flash >= 4
+    else if @flash >= 4
       @flash = 0
     @drawShip context
     @drawFire context if @breathing

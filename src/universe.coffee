@@ -73,8 +73,10 @@ class Universe
     @socket.send @self.serialized()
 
   tickPlayer: (player) ->
-    flip = player.position.x <= 0 or player.position.x >= @board.width or player.position.y >= @board.height or player.position.y <= 0
-    player.position.angle += Math.PI if flip
+    if player.position.x <= 0 or player.position.x >= @board.width
+      player.position.angle = 2 * Math.PI - player.position.angle
+    else if  player.position.y >= @board.height or player.position.y <= 0
+      player.position.angle = Math.PI - player.position.angle
 
     player.gameTick()
     player.tryToBreath(target) for id, target of @players
