@@ -119,29 +119,29 @@ module.exports = class Universe
 
     document.addEventListener "keyup", (e) =>
       switch e.keyCode
-        when 87
+        when 87, 73
           @self.controls.wPressed = false
-        when 68
+        when 68, 76
           @self.controls.dPressed = false
-        when 65
+        when 65, 74
           @self.controls.aPressed = false
         when 32
           @self.controls.spacePressed = false
-        when 83
+        when 83, 75
           @self.controls.sPressed = false
       @syncSelf()
     , false
     document.addEventListener "keydown", (e) =>
       switch e.keyCode
-        when 87
+        when 87, 73
           @self.controls.wPressed = true
-        when 68
+        when 68, 76
           @self.controls.dPressed = true
-        when 65
+        when 65, 74
           @self.controls.aPressed = true
         when 32
           @self.controls.spacePressed = true
-        when 83
+        when 83, 75
           @self.controls.sPressed = true
       @syncSelf()
     , false
