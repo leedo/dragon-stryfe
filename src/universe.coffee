@@ -196,7 +196,7 @@ module.exports = class Universe
   drawEnergyMeter: ->
     [x, y] = [@board.width - 30, @board.height - 10]
     for i in [0..10]
-      @context.fillStyle = if i*10 <= @self.energy then "red" else "#ccc"
+      @context.fillStyle = if i/10 <= (@self.energy / constants.maxEnergy) then "red" else "#ccc"
       @context.fillRect x, y, 20, 5
       y -= 10
 

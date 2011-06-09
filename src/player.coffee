@@ -51,11 +51,15 @@ module.exports  = class Player
     else if @speed > constants.coastSpeed
       @speed -= constants.decelRate
 
+    multiplier = 0
     # update our angle if a turn key is on
+    # angle is increased if thrust is on
     if @controls.aPressed and !@controls.dPressed
-      @position.angle += constants.playerTurnRate
+      multiplier = if @thrusting() then 4 else 1
     else if @controls.dPressed and !@controls.aPressed
-      @position.angle -= constants.playerTurnRate
+      multiplier = if @thrusting() then -4 else -1
+
+    @position.angle += constants.playerTurnRate * @speed * multiplier
 
     # constrain angle to the range [0 .. 2*PI]
     if @position.angle > Math.PI * 2.0
@@ -66,6 +70,7 @@ module.exports  = class Player
   updateEnergy: ->
     if @thrusting()  # how can we be thrusting without any gas?
       @energy--
+      @controls.wPressed = false unless @energy
     else
       @energy += constants.energyRegenRate
       @energy = Math.min(@energy, constants.maxEnergy)
