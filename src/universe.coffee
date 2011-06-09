@@ -6,6 +6,7 @@ module.exports = class Universe
   constructor: (starting_name) ->
     @self
     @players = {}
+    @powerups = []
     @tick_count = 0
     @starting_name = starting_name
 
