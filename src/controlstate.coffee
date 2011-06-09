@@ -3,4 +3,5 @@ module.exports = class ControlState
     @wPressed = opts.wPressed || 0
     @aPressed = opts.aPressed || 0
     @dPressed = opts.dPressed || 0
+    @sPressed = opts.sPressed || 0
     @spacePressed = opts.spacePressed || 0
