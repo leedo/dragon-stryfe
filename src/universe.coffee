@@ -6,6 +6,7 @@ module.exports = class Universe
   constructor: (starting_name) ->
     @self
     @players = {}
+    @powerups = []
     @tick_count = 0
     @starting_name = starting_name
 
@@ -23,7 +24,8 @@ module.exports = class Universe
     @drawOverlay()
     @context.save()
     @tickPlayer player for id, player of @players
-
+    
+    @updatePowerups()
 
     # I'm the authoritative source on whether I'm dead
     # make people vote to find cheaters later?
@@ -47,11 +49,39 @@ module.exports = class Universe
 
     setTimeout (=> @gameTick()), 40
 
+  updatePowerups: ->
+    if @powerups.length < 1
+      # Make a powerup!
+      if (Math.random() * 10000) > 9950
+        @powerups.push {
+          x: Math.random() * @board.width - 5
+          y: Math.random() * @board.height - 5
+        }
+    
+    @drawPowerups()
+    
+    for id, player of @players
+      for powerup in @powerups
+        if (player.position.x + 10) > (powerup.x - 5) && (player.position.x - 10) < (powerup.x + 5) && (player.position.y + 10) > (powerup.y - 5) && (player.position.y - 10) < (powerup.y + 5)
+          @powerups.pop()
+          player.energy = constants.maxEnergy
+          
+    null
+
   drawOverlay: ->
     @drawStats()
     @drawEnergyMeter()
     @drawPlayerList()
-
+    
+  drawPowerups: ->
+    for powerup in @powerups
+      @context.fillStyle = "#ffff00"
+      @context.beginPath();
+      @context.arc powerup.x, powerup.y, 5, 0, Math.PI*2, true
+      @context.closePath()
+      @context.stroke()
+      @context.fill()
+    
   drawPlayerList: ->
     [x, y] = [@board.width - 100, 100]
     @context.fillStyle = "#fff"
@@ -119,29 +149,29 @@ module.exports = class Universe
 
     document.addEventListener "keyup", (e) =>
       switch e.keyCode
-        when 87
+        when 87, 73
           @self.controls.wPressed = false
-        when 68
+        when 68, 76
           @self.controls.dPressed = false
-        when 65
+        when 65, 74
           @self.controls.aPressed = false
         when 32
           @self.controls.spacePressed = false
-        when 83
+        when 83, 75
           @self.controls.sPressed = false
       @syncSelf()
     , false
     document.addEventListener "keydown", (e) =>
       switch e.keyCode
-        when 87
+        when 87, 73
           @self.controls.wPressed = true
-        when 68
+        when 68, 76
           @self.controls.dPressed = true
-        when 65
+        when 65, 74
           @self.controls.aPressed = true
         when 32
           @self.controls.spacePressed = true
-        when 83
+        when 83, 75
           @self.controls.sPressed = true
       @syncSelf()
     , false
