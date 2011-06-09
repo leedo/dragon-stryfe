@@ -49,6 +49,9 @@ module.exports  = class Player
       @breathing = Math.PI
     if @controls.wPressed and @speed < constants.maxSpeed
       @speed += constants.accelRate
+    if @controls.sPressed and @speed > constants.minSpeed
+      @speed -= constants.brakingRate
+      @speed = 0 if @speed < constants.minSpeed
     else if @speed > constants.coastSpeed
       @speed -= constants.decelRate
 

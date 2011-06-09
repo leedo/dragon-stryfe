@@ -24,6 +24,7 @@ module.exports = class Universe
     @context.save()
     @tickPlayer player for id, player of @players
 
+
     # I'm the authoritative source on whether I'm dead
     # make people vote to find cheaters later?
     if @self.damage > constants.deadlyDamage or @self.dead
@@ -126,6 +127,8 @@ module.exports = class Universe
           @self.controls.aPressed = false
         when 32
           @self.controls.spacePressed = false
+        when 83
+          @self.controls.sPressed = false
       @syncSelf()
     , false
     document.addEventListener "keydown", (e) =>
@@ -138,6 +141,8 @@ module.exports = class Universe
           @self.controls.aPressed = true
         when 32
           @self.controls.spacePressed = true
+        when 83
+          @self.controls.sPressed = true
       @syncSelf()
     , false
 
