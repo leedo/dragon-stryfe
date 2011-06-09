@@ -24,7 +24,10 @@ module.exports = class Universe
     @drawOverlay()
     @drawPowerups()
     @tickPlayer player for id, player of @players
-    @syncSelf() if @tick_count % constants.syncTimer == 0
+
+    # sync self every tick?
+    @syncSelf() # if @tick_count % constants.syncTimer == 0
+    @handleDeath()
 
     setTimeout (=> @gameTick()), 40
 
@@ -186,3 +189,22 @@ module.exports = class Universe
       @context.fillStyle = if i*10 <= @self.energy then "red" else "#ccc"
       @context.fillRect x, y, 20, 5
       y -= 10
+
+  handleDeath: ->
+    # I'm the authoritative source on whether I'm dead
+    # make people vote to find cheaters later?
+    if @self.damage > constants.deadlyDamage or @self.dead
+      @self.dead++
+      if @self.dead == 1
+        console.log "#{@self.name} died at tick #{@tick_count}"
+        @self.damage = "dead"
+        @self.trail = []
+      else if @self.dead >= constants.deathAnimationTime
+        @self.damage = 0
+        @self.dead = 0
+        @self.position.x = Math.random() * constants.universeWidth
+        @self.position.y = Math.random() * constants.universeHeight
+        @self.flash = 1
+        # hacky...  should draw this in the dragon drawing routine?
+        # update some kinda scoreboard?
+

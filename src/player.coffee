@@ -37,6 +37,8 @@ module.exports  = class Player
     # don't move if you're dead
     if @dead != 0
       @speed = 0
+      @position.angle = Math.PI * @dead / 10.0
+      @dead++
       return
 
     if @controls.spacePressed
@@ -71,29 +73,7 @@ module.exports  = class Player
   thrusting: ->
     @controls.wPressed and @energy >= 1
 
-  handleDeath: ->
-    # I'm the authoritative source on whether I'm dead
-    # make people vote to find cheaters later?
-    if @damage > constants.deadlyDamage or @dead
-      @dead++
-      @position.angle = Math.PI * @dead / 10.0
-      if @dead == 1
-        console.log "#{@name} died at tick #{@tick_count}"
-        @damage = "dead"
-        @trail = []
-      else if @dead >= constants.deathAnimationTime
-        @damage = 0
-        @dead = 0
-        @position.x = Math.random() * constants.universeWidth
-        @position.y = Math.random() * constants.universeHeight
-        @flash = 1
-        # hacky...  should draw this in the dragon drawing routine?
-        # update some kinda scoreboard?
-
   gameTick: ->
-    @handleDeath()
-    return if @dead
-
     @breathing = false
     @handleInput()
     @updatePosition()
@@ -189,7 +169,7 @@ module.exports  = class Player
       #should this be a different color?
       oldfillstyle = @context.fillstyle
       @context.fillstyle = "#ff0"
-      @context.arc @self.position.x, @self.position.y, 30, 0, (2 * Math.PI), false
+      @context.arc @position.x, @position.y, 30, 0, (2 * Math.PI), false
       @context.fill()
       @context.fillstyle = oldfillstyle
       @flash++
