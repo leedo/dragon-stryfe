@@ -62,6 +62,13 @@ module.exports = class Universe
     @context.fillText "thrust: #{@self.energy}", 10, 50
     @context.fillText "id: #{@self.id}", 10, 60
     @context.fillText "dead: #{@self.dead}", 10, 70
+    @context.fillText "pressn: #{@self.controls.anyPressed()}", 10, 80
+    if @self.controls.target
+      @context.fillText "targetx: #{@self.controls.target.x}", 10, 90
+      @context.fillText "targetx: #{@self.controls.target.y}", 10, 100
+    else
+      @context.fillText "No touch target!", 10, 90
+      @context.fillText "", 10, 100  # just to simplify further prints
 
   syncSelf: ->
     @socket.send @self.serialized()
@@ -110,16 +117,19 @@ module.exports = class Universe
     # capture points into @draw_buf if someone clicks
     # on their own ship
     @board.addEventListener "mousedown", (e) =>
-      return unless e.target == @board
+      return unless e.target == @board and not @self.controls.anyPressed()
+      @self.controls.target = {x:e.clientX, y:e.clientY}
       @is_drawing = true
       @draw_buf = []
     , false
     @board.addEventListener "mousemove", (e) =>
-      return unless @is_drawing
+      return unless @is_drawing and not @self.controls.anyPressed()
+      @self.controls.target = {x:e.clientX, y:e.clientY}
       @draw_buf.push e.clientX, e.clientY
     , false
     @board.addEventListener "mouseup", (e) =>
       return unless @is_drawing
+      @self.controls.target = {x:e.clientX, y:e.clientY}
       @is_drawing = false
     , false
 
