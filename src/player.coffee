@@ -37,8 +37,6 @@ module.exports  = class Player
     # don't move if you're dead
     if @dead != 0
       @speed = 0
-      @position.angle = Math.PI * @dead / 10.0
-      @dead++
       return
 
     if @controls.spacePressed
@@ -73,13 +71,14 @@ module.exports  = class Player
   thrusting: ->
     @controls.wPressed and @energy >= 1
 
-  handleDamage: ->
+  handleDeath: ->
     # I'm the authoritative source on whether I'm dead
     # make people vote to find cheaters later?
     if @damage > constants.deadlyDamage or @dead
       @dead++
+      @position.angle = Math.PI * @dead / 10.0
       if @dead == 1
-        console.log "#{@self.name} died at tick #{@tick_count}"
+        console.log "#{@name} died at tick #{@tick_count}"
         @damage = "dead"
         @trail = []
       else if @dead >= constants.deathAnimationTime
@@ -92,7 +91,7 @@ module.exports  = class Player
         # update some kinda scoreboard?
 
   gameTick: ->
-    @handleDamage()
+    @handleDeath()
     return if @dead
 
     @breathing = false
@@ -124,7 +123,7 @@ module.exports  = class Player
       angleToPlayer = Math.PI + Math.atan2(vecToPlayer.x, vecToPlayer.y)
       if Math.abs(angleToPlayer - @position.angle) < 0.8
         @breathing = angleToPlayer
-        target.damage++
+        target.damage += Math.max(@speed, 0)
 
   drawTail: (context) ->
     # do we wanna draw the tail if we're dead? nope

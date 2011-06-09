@@ -15,3 +15,5 @@ module.exports =
   deadlyDamage: 100
   deathAnimationTime: 50
   syncTimer: 25
+  maxPowerups: 10
+  powerupTimer: 400
