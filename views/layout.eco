@@ -1,10 +1,11 @@
 <html>
   <head>
     <link type="text/css" rel="stylesheet" href="/game.css" />
+    <meta name="viewport" content="width=800, initial-scale=1, user-scalable=no">
   </head>
   <body>
     <div id="container">
-      <h1>ᴅ ʀ ᴀ ɢ ᴏ ɴ s ᴛ ʀ ʏ ƒ ᴇ</h1>
+      <h1>dragonstry<span>ƒ</span>e</h1>
       <%- @body %>
     </div>
   </body>

@@ -30,7 +30,13 @@ body {
 h1 {
   color: #fff;
   text-align: center;
+  font-variant: small-caps;
+  letter-spacing: 0.6em;
   margin: 20px 0;
+}
+
+h1 span {
+  font-variant: normal;
 }
 
 canvas#universe {
