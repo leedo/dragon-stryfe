@@ -31,6 +31,17 @@ distSquared = (a, b) ->
   ydiff = b.y - a.y
   xdiff * xdiff + ydiff * ydiff
 
+clamp = (x, minval, maxval) ->
+  return Math.min(maxval, Math.max(x, maxval))
+
+# if b points "right" while looking down a, reutn neg, if left then pos
+leftRight = (a, b) ->
+  return a.x * b.y - a.y * b.x
+
+# return pos for things in front, neg for back
+frontBack = (a, b) ->
+  return a.x * b.x + a.y * b.y
+
 module.exports = {
   length: length
   normalize: normalize
@@ -40,4 +51,7 @@ module.exports = {
   angleBetween: angleBetween
   distanceFrom: distanceFrom
   distSquared: distSquared
+  clamp: clamp
+  leftRight: leftRight
+  frontBack: frontBack
 }
