@@ -53,9 +53,16 @@ module.exports  = class Player
       # otherwise speed up
       toTarget = util.subtractVec(@controls.target, @position)
       angleToTarget = Math.PI + Math.atan2(toTarget.x, toTarget.y) - @position.angle
+      # fix this wonky hacky shit
       if angleToTarget > Math.PI
-        angleToTarget -= 2.0 * Math.PI
-      turnAmount = util.clamp angleToTarget, -constants.playerTurnRate, constants.playerTurnRate
+        sign = -1
+      else if angleToTarget > 0
+        sign = 1
+      else if angleToTarget > -Math.PI
+        sign = 1
+      else
+        sign = -1
+      turnAmount = util.clamp angleToTarget * sign, -constants.playerTurnRate, constants.playerTurnRate
       @position.angle += turnAmount
       @speed = Math.min constants.maxSpeed, constants.accelRate + @speed
       distAway = util.length toTarget
