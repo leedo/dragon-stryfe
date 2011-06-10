@@ -238,6 +238,7 @@ module.exports = class Universe
         @self.position.x = Math.random() * constants.universeWidth
         @self.position.y = Math.random() * constants.universeHeight
         @self.flash = 1
+        @self.energy = constants.maxEnergy
         # hacky...  should draw this in the dragon drawing routine?
         # update some kinda scoreboard?
 
