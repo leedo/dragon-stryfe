@@ -32,7 +32,7 @@ module.exports = class Universe
     @drawPowerups()
 
     # sync self every tick?
-    @syncSelf() if @tick_count % constants.syncTimer == 0
+    @syncSelf() #if @tick_count % constants.syncTimer == 0
 
     setTimeout (=> @gameTick()), 40
 
