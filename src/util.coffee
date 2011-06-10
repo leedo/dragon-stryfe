@@ -32,7 +32,7 @@ distSquared = (a, b) ->
   xdiff * xdiff + ydiff * ydiff
 
 clamp = (x, minval, maxval) ->
-  return Math.min(maxval, Math.max(x, maxval))
+  return Math.min(maxval, Math.max(x, minval))
 
 # if b points "right" while looking down a, reutn neg, if left then pos
 leftRight = (a, b) ->

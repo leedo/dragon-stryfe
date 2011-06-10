@@ -6,6 +6,7 @@ module.exports = class ControlState
     @sPressed = opts.sPressed || 0
     @spacePressed = opts.spacePressed || 0
     @target   = opts.target || false # place that touches want us to get to
+    @mouseDown = opts.mouseDown || false
   anyPressed: () ->
     pressed = false
     # get this comprehension to work some time when I have net acceess and can view coffeescript docs

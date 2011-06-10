@@ -69,6 +69,13 @@ module.exports = class Universe
     else
       @context.fillText "No touch target!", 10, 90
       @context.fillText "", 10, 100  # just to simplify further prints
+    totarget = util.subtractVec @self.controls.target, @self.position
+    toTargAngle =  Math.PI + Math.atan2(totarget.x, totarget.y)
+    @context.fillText "Target angle: #{toTargAngle}", 10, 110
+    @context.fillText "ToTarget vectorx: #{totarget.x}", 10, 120
+    @context.fillText "ToTarget vectory: #{totarget.y}", 10, 130
+    @context.fillText "DistToTarget: " + util.distanceFrom(@self.position, @self.controls.target), 10, 140
+    @context.fillText "Want to turn: " + (toTargAngle - @self.position.angle), 10, 150
 
   syncSelf: ->
     @socket.send @self.serialized()
@@ -118,18 +125,21 @@ module.exports = class Universe
     # on their own ship
     @board.addEventListener "mousedown", (e) =>
       return unless e.target == @board and not @self.controls.anyPressed()
-      @self.controls.target = {x:e.clientX, y:e.clientY}
+      @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
+      @self.controls.mousedown = true
       @is_drawing = true
+
       @draw_buf = []
     , false
     @board.addEventListener "mousemove", (e) =>
-      return unless @is_drawing and not @self.controls.anyPressed()
-      @self.controls.target = {x:e.clientX, y:e.clientY}
+      return unless @is_drawing or (not @self.controls.anyPressed() and @self.controls.mouseDown)
+      @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
       @draw_buf.push e.clientX, e.clientY
     , false
     @board.addEventListener "mouseup", (e) =>
+      @self.controls.mouseDown = false
       return unless @is_drawing
-      @self.controls.target = {x:e.clientX, y:e.clientY}
+      #@self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
       @is_drawing = false
     , false
 
@@ -148,6 +158,7 @@ module.exports = class Universe
       @syncSelf()
     , false
     document.addEventListener "keydown", (e) =>
+      @self.controls.target = false
       switch e.keyCode
         when 87, 73
           @self.controls.wPressed = true

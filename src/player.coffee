@@ -48,6 +48,20 @@ module.exports  = class Player
     if @controls.sPressed and @speed > constants.minSpeed
       @speed -= constants.brakingRate
       @speed = 0 if @speed < constants.minSpeed
+    if @controls.target != false
+      # try and steer towards the target, slow down if it's under our turning radius
+      # otherwise speed up
+      toTarget = util.subtractVec(@controls.target, @position)
+      angleToTarget = Math.PI + Math.atan2(toTarget.x, toTarget.y) - @position.angle
+      if angleToTarget > Math.PI
+        angleToTarget -= 2.0 * Math.PI
+      turnAmount = util.clamp angleToTarget, -constants.playerTurnRate, constants.playerTurnRate
+      @position.angle += turnAmount
+      @speed = Math.min constants.maxSpeed, constants.accelRate + @speed
+      distAway = util.length toTarget
+      if distAway < 10.0
+        @controls.target = false
+
     else if @speed > constants.coastSpeed
       @speed -= constants.decelRate
 
