@@ -98,7 +98,7 @@ module.exports = class Universe
     player.gameTick()
     player.tryToBreath(target) for id, target of @players
     player.draw @context
-    @drawName(@context) if player != @self
+    player.drawName(@context) if player != @self
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
