@@ -124,7 +124,7 @@ module.exports = class Universe
 
   enableControls: ->
     # capture points into @draw_buf on touch
-    @board.addEventListener "touchstart", (e) =>
+    @board.addEventListener "mousedown", (e) =>
       return unless e.target == @board and not @self.controls.anyPressed()
       @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
       @self.controls.mousedown = true
@@ -132,12 +132,12 @@ module.exports = class Universe
 
       @draw_buf = []
     , false
-    @board.addEventListener "touchmove", (e) =>
+    @board.addEventListener "mousemove", (e) =>
       return unless @is_drawing or (not @self.controls.anyPressed() and @self.controls.mouseDown)
       @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
       @draw_buf.push e.clientX, e.clientY
     , false
-    @board.addEventListener "touchend", (e) =>
+    @board.addEventListener "mouseup", (e) =>
       @self.controls.mouseDown = false
       return unless @is_drawing
       #@self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
