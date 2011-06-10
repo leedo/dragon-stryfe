@@ -20,15 +20,19 @@ module.exports = class Universe
 
   gameTick: ->
     @tick_count++
+
+    # this clears the canvas
     @board.width = @board.width
+
     @addPowerup() if @powerups.length < constants.maxPowerups and @tick_count % constants.powerupTimer == 0
     @tickPlayer player for id, player of @players
+    @checkDeath()
 
     @drawOverlay()
     @drawPowerups()
+
     # sync self every tick?
-    @syncSelf() # if @tick_count % constants.syncTimer == 0
-    @handleDeath()
+    @syncSelf() if @tick_count % constants.syncTimer == 0
 
     setTimeout (=> @gameTick()), 40
 
@@ -193,7 +197,7 @@ module.exports = class Universe
 
   syncPlayer: (state) ->
     player = @players[state.id]
-    return if !player or player.id == @self.id or player.dead
+    return if !player or player.id == @self.id
     player.update state
 
   connect: ->
@@ -223,15 +227,13 @@ module.exports = class Universe
     width = 100 - (@self.damage / constants.deadlyDamage)
     @context.fillRect x, y, width, 5
 
-  handleDeath: ->
+  checkDeath: ->
     # I'm the authoritative source on whether I'm dead
     # make people vote to find cheaters later?
     if @self.damage > constants.deadlyDamage or @self.dead
-      @self.dead++
-      if @self.dead == 1
+      if @self.dead == 0
         console.log "#{@self.name} died at tick #{@tick_count}"
-        @self.damage = "dead"
-        @self.trail = []
+        @self.dead = 1
       else if @self.dead >= constants.deathAnimationTime
         @self.damage = 0
         @self.dead = 0

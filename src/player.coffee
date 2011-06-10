@@ -33,6 +33,7 @@ module.exports  = class Player
       id: @id
       name: @name
       damage: @damage
+      dead: @dead
 
   update: (opts) ->
     @controls = opts.controls || new ControlState opts
@@ -46,16 +47,13 @@ module.exports  = class Player
     @body_color = opts.body_color || @body_color
     @highlight_color = opts.highlight_color || @highlight_color
 
-  handleInput: ->
-    # don't move if you're dead
-    if @dead != 0
-      if @dead == 1
-        screech.play()
-      @speed = 0
-      @position.angle = Math.PI * @dead / 10.0
-      @dead++
-      return
+  deathTick: ->
+    screech.play() if @dead == 1
+    @position.angle = Math.PI * @dead / 10.0
+    @speed = Math.max(@speed - 0.5, 0)
+    @dead++
 
+  handleInput: ->
     if @controls.spacePressed
       @breathing = Math.PI
     if @controls.wPressed and @speed < constants.maxSpeed
@@ -107,7 +105,9 @@ module.exports  = class Player
        @position.angle += Math.PI * 2.0
 
   updateEnergy: ->
-    if @thrusting()  # how can we be thrusting without any gas?
+    if @dead
+      @energy = 0
+    else if @thrusting()  # how can we be thrusting without any gas?
       @energy--
       @controls.wPressed = false unless @energy
     else
@@ -119,10 +119,15 @@ module.exports  = class Player
 
   gameTick: ->
     @breathing = false
-    @handleInput()
-    @updatePosition()
-    @updateTrail()
+
+    if @dead > 0
+      @deathTick()
+    else
+      @handleInput()
+
     @updateEnergy()
+    @updateTrail()
+    @updatePosition()
 
   updatePosition: ->
     scale_y = Math.cos @position.angle
@@ -135,6 +140,9 @@ module.exports  = class Player
     @position.y = Math.min(constants.universeHeight, Math.max(@position.y, 0))
 
   updateTrail: ->
+    if @dead
+      @trail = []
+      return
     dist = if @trail.length then util.distanceFrom(@position, @trail[0]) else 0
     if !@trail.length or dist > 4
       @trail.unshift {x: @position.x, y: @position.y, dist: dist, angle: @position.angle}
@@ -183,7 +191,6 @@ module.exports  = class Player
     rate = 1.8
     transparency = 0.1
 
-    console.log context.globalCompositeOperation
     context.save()
     context.translate 0, -10
 
