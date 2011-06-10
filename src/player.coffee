@@ -16,8 +16,8 @@ module.exports  = class Player
       @body_color = opts.colors[4]
       @highlight_color = opts.colors[2]
     else
-      @body_color = "green"
-      @highlight_color = "#FE5A2A"
+      @body_color = util.randomColor()
+      @highlight_color = util.randomColor()
 
   serialized: ->
     data =

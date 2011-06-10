@@ -42,6 +42,9 @@ leftRight = (a, b) ->
 frontBack = (a, b) ->
   return a.x * b.x + a.y * b.y
 
+randomColor = ->
+  '#'+Math.floor(Math.random()*16777215).toString(16)
+
 module.exports = {
   length: length
   normalize: normalize
@@ -54,4 +57,5 @@ module.exports = {
   clamp: clamp
   leftRight: leftRight
   frontBack: frontBack
+  randomColor: randomColor
 }
