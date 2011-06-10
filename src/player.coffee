@@ -12,6 +12,12 @@ module.exports  = class Player
     @img = document.getElementById("dragon")
     @trail = []
     @update(opts)
+    if opts.colors.length
+      @body_color = opts.colors[4]
+      @highlight_color = opts.colors[2]
+    else
+      @body_color = "#fff"
+      @highlight_color = "#FE5A2A"
 
   serialized: ->
     data =
@@ -55,9 +61,9 @@ module.exports  = class Player
     # update our angle if a turn key is on
     # angle is increased if thrust is on
     if @controls.aPressed and !@controls.dPressed
-      multiplier = if @thrusting() then 4 else 1
+      multiplier = if @thrusting() or @controls.sPressed then 4 else 1
     else if @controls.dPressed and !@controls.aPressed
-      multiplier = if @thrusting() then -4 else -1
+      multiplier = if @thrusting() or @controls.sPressed then -4 else -1
 
     @position.angle += constants.playerTurnRate * @speed * multiplier
 
@@ -113,11 +119,11 @@ module.exports  = class Player
   drawTail: (context) ->
     # do we wanna draw the tail if we're dead? nope
     # but we zero out the tail at death
-    context.fillStyle = "#fff"
     width = 3
-    for coord in @trail
+    for i, coord of @trail
       if coord and prev
         context.save()
+        context.fillStyle = if i % 2 then @body_color else @highlight_color
         context.translate coord.x, coord.y
         context.rotate -coord.angle
         context.fillRect 0, 0, width, coord.dist + 2
@@ -126,7 +132,16 @@ module.exports  = class Player
       prev = coord
 
   drawShip: (context) ->
+    context.save()
     context.drawImage(@img, -10, 0)
+    context.globalCompositeOperation = "source-in"
+    context.fillStyle = @body_color
+    context.fillRect(1, 0, 10, 30)
+    context.fillRect(1, 1, 10, 10)
+    context.fillStyle = @highlight_color
+    context.fillRect(-10, 10, 12, 16)
+    context.fillRect(10, 10, 12, 16)
+    context.restore()
 
   drawFire: (context) ->
     width = 8
