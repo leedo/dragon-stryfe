@@ -1,30 +1,8 @@
-div.player.self {
-  background: #fff;
-}
-
-div.player {
-  border-bottom: 3px solid red;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 8px;
-  height: 8px;
-  background: #ccc;
-}
-
-div.player span.label {
-  position: absolute;
-  bottom: -15px;
-  height: 10px;
-  color: #ccc;
-  font-size: 10px;
-}
-
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background: #111
+  background: #000
 }
 
 h1 {
@@ -40,11 +18,11 @@ h1 span {
 }
 
 canvas#universe {
-  background: #000;
   display: block;
   width: 800px;
   height: 500px;
   margin: 0 auto;
+  background: #000 url(/background.jpg) center center no-repeat;
 }
 
 div#container {
