@@ -5,6 +5,9 @@ constants = require "constants"
 # some definitions for the tweakable bits
 util = require 'util'
 
+breath = new Audio('breath.m4a')
+screech = new Audio('screech.m4a')
+
 module.exports  = class Player
   constructor: (opts) ->
     @id = opts.id
@@ -46,6 +49,8 @@ module.exports  = class Player
   handleInput: ->
     # don't move if you're dead
     if @dead != 0
+      if @dead == 1
+        screech.play()
       @speed = 0
       @position.angle = Math.PI * @dead / 10.0
       @dead++
@@ -143,6 +148,7 @@ module.exports  = class Player
       if Math.abs(angleToPlayer - @position.angle) < 0.8
         @breathing = angleToPlayer
         target.damage += Math.max(@speed, 0)
+        breath.play()
 
   drawTail: (context) ->
     # do we wanna draw the tail if we're dead? nope
