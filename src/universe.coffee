@@ -22,10 +22,10 @@ module.exports = class Universe
     @tick_count++
     @board.width = @board.width
     @addPowerup() if @powerups.length < constants.maxPowerups and @tick_count % constants.powerupTimer == 0
-    @drawOverlay()
-    @drawPowerups()
     @tickPlayer player for id, player of @players
 
+    @drawOverlay()
+    @drawPowerups()
     # sync self every tick?
     @syncSelf() # if @tick_count % constants.syncTimer == 0
     @handleDeath()
@@ -33,8 +33,9 @@ module.exports = class Universe
     setTimeout (=> @gameTick()), 40
 
   drawOverlay: ->
-    @drawStats()
+    #@drawStats()
     @drawEnergyMeter()
+    @drawHealthMeter()
     @drawPlayerList()
 
   addPowerup: ->
@@ -97,6 +98,7 @@ module.exports = class Universe
     player.gameTick()
     player.tryToBreath(target) for id, target of @players
     player.draw @context
+    @drawName(@context) if player != @self
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
@@ -206,11 +208,20 @@ module.exports = class Universe
       @[ req.action ](req.data)
 
   drawEnergyMeter: ->
-    [x, y] = [@board.width - 30, @board.height - 10]
-    for i in [0..10]
-      @context.fillStyle = if i/10 <= (@self.energy / constants.maxEnergy) then "red" else "#ccc"
-      @context.fillRect x, y, 20, 5
-      y -= 10
+    [x, y] = [10, 20]
+    @context.fillStyle = "rgba(255,255,255,0.2)"
+    @context.fillRect x, y, 100, 5
+    @context.fillStyle = "yellow"
+    width = 100 * (@self.energy / constants.maxEnergy)
+    @context.fillRect x, y, width, 5
+
+  drawHealthMeter: ->
+    [x, y] = [10, 10]
+    @context.fillStyle = "rgba(255,255,255,0.2)"
+    @context.fillRect x, y, 100, 5
+    @context.fillStyle = "red"
+    width = 100 - (@self.damage / constants.deadlyDamage)
+    @context.fillRect x, y, width, 5
 
   handleDeath: ->
     # I'm the authoritative source on whether I'm dead

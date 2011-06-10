@@ -1,5 +1,5 @@
     <img src="/dragon2.png" style="position:absolute;left:-100px" id="dragon">
-    <canvas id="universe" width="800" height="600"></canvas>
+    <canvas id="universe" width="800" height="500"></canvas>
 
     <script src="/socket.io/socket.io.js"></script> 
     <script src="/client.js"></script> 

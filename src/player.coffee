@@ -16,7 +16,7 @@ module.exports  = class Player
       @body_color = opts.colors[4]
       @highlight_color = opts.colors[2]
     else
-      @body_color = "#fff"
+      @body_color = "green"
       @highlight_color = "#FE5A2A"
 
   serialized: ->
@@ -160,8 +160,8 @@ module.exports  = class Player
       prev = coord
 
   drawShip: (context) ->
-    context.save()
     context.drawImage(@img, -10, 0)
+    orig = context.globalCompositeOperation
     context.globalCompositeOperation = "source-atop"
     context.fillStyle = @body_color
     context.fillRect(1, 0, 10, 30)
@@ -169,7 +169,7 @@ module.exports  = class Player
     context.fillStyle = @highlight_color
     context.fillRect(-10, 10, 12, 16)
     context.fillRect(10, 10, 12, 16)
-    context.restore()
+    context.globalCompositeOperation = orig
 
   drawFire: (context) ->
     width = 8
@@ -177,6 +177,7 @@ module.exports  = class Player
     rate = 1.8
     transparency = 0.1
 
+    console.log context.globalCompositeOperation
     context.save()
     context.translate 0, -10
 
@@ -195,12 +196,16 @@ module.exports  = class Player
 
   drawName: (context) ->
     context.save()
-    context.translate @position.x, @position.y
+    context.translate @position.x - 4, @position.y - 16
     context.fillStyle = "#000"
-    context.fillText @name, -5, -15
-    context.fillText @name, -3, -17
+    context.fillRect -1, 2, 22, 4
+    context.fillStyle = "green"
+    context.fillRect 0, 3, 20, 2
+    context.shadowBlur = 3
+    context.shadowColor = "#000"
     context.fillStyle = "#fff"
-    context.fillText @name, -4, -16
+    context.fillText @name, 0, 0
+
     context.restore()
 
   draw: (context) ->
@@ -226,4 +231,3 @@ module.exports  = class Player
     @drawShip context
     @drawFire context if @breathing
     context.restore()
-    @drawName(context)
