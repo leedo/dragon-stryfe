@@ -138,7 +138,7 @@ module.exports  = class Player
   drawShip: (context) ->
     context.save()
     context.drawImage(@img, -10, 0)
-    context.globalCompositeOperation = "source-in"
+    context.globalCompositeOperation = "source-atop"
     context.fillStyle = @body_color
     context.fillRect(1, 0, 10, 30)
     context.fillRect(1, 1, 10, 10)
