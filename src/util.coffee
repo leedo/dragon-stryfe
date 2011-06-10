@@ -43,7 +43,7 @@ frontBack = (a, b) ->
   return a.x * b.x + a.y * b.y
 
 randomColor = ->
-  '#'+Math.floor(Math.random()*16777215).toString(16)
+  'rgba('+ Math.floor(Math.random()*155+100) + ',' + Math.floor(Math.random()*155+100)+','+Math.floor(Math.random()*155+100)+',255)'
 
 module.exports = {
   length: length
