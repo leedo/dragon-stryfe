@@ -12,7 +12,7 @@ module.exports  = class Player
     @img = document.getElementById("dragon")
     @trail = []
     @update(opts)
-    if opts.colors.length
+    if opts.colors and opts.colors.length
       @body_color = opts.colors[4]
       @highlight_color = opts.colors[2]
     else
@@ -21,6 +21,8 @@ module.exports  = class Player
 
   serialized: ->
     data =
+      body_color: @body_color
+      highlight_color: @highlight_color
       controls: @controls
       position: @position
       speed: @speed
@@ -38,6 +40,8 @@ module.exports  = class Player
     @damage   = opts.damage   || 0
     @dead     = opts.dead     || 0  # dead if != 0, else ticks since dead
     @flash    = opts.flash    || 0 # draw a flash around the dragon this turn (player respawn, what else?)
+    @body_color = opts.body_color || @body_color
+    @highlight_color = opts.highlight_color || @highlight_color
 
   handleInput: ->
     # don't move if you're dead
