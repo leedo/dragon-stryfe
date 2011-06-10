@@ -4,12 +4,13 @@ util = require 'util'
 constants = require 'constants'
 
 module.exports = class Universe
-  constructor: (starting_name) ->
+  constructor: (starting_name, colors) ->
     @self
     @players = {}
     @powerups = []
     @tick_count = 0
     @starting_name = starting_name
+    @colors = colors
     @is_drawing
     @draw_buf = []
     @board = document.getElementById "universe"
@@ -103,6 +104,7 @@ module.exports = class Universe
     # just override the default with center
     state.x = @board.width / 2
     state.y = @board.height / 2
+    state.colors = @colors
     if !@starting_name
       state.name = prompt "What is your dragon's name?"
       state.name = state.name.substr 0, 16
@@ -207,7 +209,7 @@ module.exports = class Universe
   drawEnergyMeter: ->
     [x, y] = [@board.width - 30, @board.height - 10]
     for i in [0..10]
-      @context.fillStyle = if i*10 <= @self.energy then "red" else "#ccc"
+      @context.fillStyle = if i/10 <= (@self.energy / constants.maxEnergy) then "red" else "#ccc"
       @context.fillRect x, y, 20, 5
       y -= 10
 

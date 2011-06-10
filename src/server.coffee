@@ -27,7 +27,7 @@ app.get "/", (req, res) ->
     res.redirect "/game"
 
 app.get "/game", (req, res) ->
-  res.render "game", {screen_name: req.session.screen_name}
+  res.render "game", {screen_name: req.session.screen_name || "", colors: req.session.colors || []}
 
 app.get "/login", (req, res) ->
   res.render "login"
@@ -76,7 +76,14 @@ app.get "/login_success", (req, res) ->
           req.session.oauth_access_token_secret,
           (error, data, response) ->
             feed = JSON.parse(data)
-            req.session.screen_name = feed.screen_name if feed.screen_name
+            req.session.screen_name = feed.screen_name
+            req.session.colors = [
+              feed.profile_sidebar_border_color,
+              feed.profile_sidebar_fill_color,
+              feed.profile_link_color,
+              feed.profile_text_color,
+              feed.profile_background_color,
+            ]
             res.redirect "/"
 
 broadcast = (action, data) ->
