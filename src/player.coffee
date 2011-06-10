@@ -72,7 +72,10 @@ module.exports  = class Player
         sign = 1
       else
         sign = -1
-      turnAmount = util.clamp angleToTarget * sign, -constants.playerTurnRate, constants.playerTurnRate
+      turnLimit = @speed * constants.playerTurnRate
+      if @thrusting()
+        turnLimit *= 4
+      turnAmount = util.clamp angleToTarget/sign, -turnLimit, turnLimit
       @position.angle += turnAmount
       @speed = Math.min constants.maxSpeed, constants.accelRate + @speed
       distAway = util.length toTarget
@@ -107,7 +110,7 @@ module.exports  = class Player
       @energy = Math.min(@energy, constants.maxEnergy)
 
   thrusting: ->
-    @controls.wPressed and @energy >= 1
+    (@controls.wPressed or @controls.target) and @energy >= 1
 
   gameTick: ->
     @breathing = false
