@@ -50,10 +50,10 @@ drawOutlinedText = (context, text, x, y) ->
   context.shadowColor = "#000"
   context.fillStyle = "#000"
   context.font = "12px sans-serif"
-  context.fillText text, x-1, y-1
-  context.fillText text, x-2, y-2
-  context.fillText text, x+1, y+1
-  context.fillText text, x+2, y+2
+  context.fillText text, x-1, y
+  context.fillText text, x+1, y
+  context.fillText text, x, y-1
+  context.fillText text, x, y+1
   context.fillStyle = "#fff"
   context.font = "12px sans-serif"
   context.fillText text, x, y
