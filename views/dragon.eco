@@ -1,0 +1,8 @@
+<dragon>
+  <name><%= @name %></name>
+  <colors>
+    <% for color in @colors: %>
+      <color><%= color %></color>
+    <% end %>
+  </colors>
+</dragon>

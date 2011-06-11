@@ -2,6 +2,7 @@ express = require 'express'
 io = require 'socket.io'
 fs = require 'fs'
 stitch = require 'stitch'
+util = require './util.js'
 OAuth = require('oauth').OAuth
 
 client_id = 1
@@ -16,6 +17,7 @@ app.configure ->
   app.use express.bodyParser()
   app.use express.cookieParser()
   app.use express.session secret: "penus"
+  app.use app.router
   app.use express.static "#{__dirname}/../public"
 
 app.get "/client.js", package.createServer()
@@ -31,6 +33,12 @@ app.get "/game", (req, res) ->
 
 app.get "/login", (req, res) ->
   res.render "login"
+
+app.get "/dragon.xml", (req, res) ->
+  res.contentType "application/dragon+xml"
+  res.partial "dragon",
+    name: req.session.screen_name || "",
+    colors: req.session.colors || util.randomColor() for [0 .. 4]
 
 app.get "/twitter_login", (req, res) ->
   oa = new OAuth "https://api.twitter.com/oauth/request_token",
