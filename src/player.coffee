@@ -14,6 +14,7 @@ module.exports  = class Player
     @breathing = false
     @img = document.getElementById("dragon")
     @trail = []
+    @segment_dist = 0
     @update(opts)
     if opts.colors and opts.colors.length
       @body_color = opts.colors[4]
@@ -143,10 +144,12 @@ module.exports  = class Player
     if @dead
       @trail = []
       return
-    dist = if @trail.length then util.distanceFrom(@position, @trail[0]) else 0
-    if !@trail.length or dist > 4
+    @segment_dist += @speed
+    dist = Math.abs @segment_dist
+    if dist > 4
       @trail.unshift {x: @position.x, y: @position.y, dist: dist, angle: @position.angle}
       @trail.pop() if @trail.length > constants.maxTrailLength
+      @segment_dist = 0
 
   tryToBreath: (target) ->
     return if target.id == @id or @dead
@@ -159,19 +162,15 @@ module.exports  = class Player
         breath.play()
 
   drawTail: (context) ->
-    # do we wanna draw the tail if we're dead? nope
-    # but we zero out the tail at death
     width = 3
-    for i, coord of @trail
-      if coord and prev
-        context.save()
-        context.fillStyle = if i % 2 then @body_color else @highlight_color
-        context.translate coord.x, coord.y
-        context.rotate -coord.angle
-        context.fillRect 0, 0, width, coord.dist + 2
-        context.restore()
-        width -= 0.2
-      prev = coord
+    for i, segment of @trail[0 .. 8]
+      context.save()
+      context.fillStyle = if i % 2 then @body_color else @highlight_color
+      context.translate segment.x, segment.y
+      context.rotate -segment.angle
+      context.fillRect 0, 0, width, segment.dist + 2
+      width -= 0.2
+      context.restore()
 
   drawShip: (context) ->
     context.drawImage(@img, -10, 0)
