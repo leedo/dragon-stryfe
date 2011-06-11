@@ -102,7 +102,7 @@ module.exports = class Universe
     player.gameTick()
     player.tryToBreath(target) for id, target of @players
     player.draw @context
-    player.drawName(@context) if player != @self
+    player.drawName(@context, player != @self)
 
   initSelf: (state) ->
     console.log "init self with id #{state.id}"
@@ -203,7 +203,7 @@ module.exports = class Universe
   connect: ->
     @socket = new io.Socket window.location.hostname
     @socket.connect()
-    @socket.on 'disconnect', ->
+    @socket.on 'disconnect', =>
       players = {}
       @self = null
       @disableControls()
@@ -212,7 +212,9 @@ module.exports = class Universe
       @[ req.action ](req.data)
 
   drawEnergyMeter: ->
-    [x, y] = [10, 20]
+    [x, y] = [10, 35]
+    util.drawOutlinedText @context, "Energy", x, y
+    y += 3
     @context.fillStyle = "rgba(255,255,255,0.2)"
     @context.fillRect x, y, 100, 5
     @context.fillStyle = "yellow"
@@ -220,12 +222,14 @@ module.exports = class Universe
     @context.fillRect x, y, width, 5
 
   drawHealthMeter: ->
-    [x, y] = [10, 10]
+    [x, y] = [10, 15]
+    util.drawOutlinedText @context, "Health", x, y
+    y += 3
     @context.fillStyle = "rgba(255,255,255,0.2)"
     @context.fillRect x, y, 100, 5
-    @context.fillStyle = "red"
-    width = 100 - (@self.damage / constants.deadlyDamage)
-    @context.fillRect x, y, width, 5
+    percent = @self.damage / constants.deadlyDamage
+    @context.fillStyle = if percent < .8 then "green" else "red"
+    @context.fillRect x, y, 100 - 100 * percent, 5
 
   checkDeath: ->
     # I'm the authoritative source on whether I'm dead

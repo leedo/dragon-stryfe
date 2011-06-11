@@ -207,17 +207,18 @@ module.exports  = class Player
 
     context.restore()
 
-  drawName: (context) ->
+  drawName: (context, health) ->
     context.save()
     context.translate @position.x - 4, @position.y - 16
-    context.fillStyle = "#000"
-    context.fillRect -1, 2, 22, 4
-    context.fillStyle = "green"
-    context.fillRect 0, 3, 20, 2
-    context.shadowBlur = 3
-    context.shadowColor = "#000"
-    context.fillStyle = "#fff"
-    context.fillText @name, 0, 0
+
+    if health
+      context.fillStyle = "#000"
+      context.fillRect -1, 2, 22, 4
+      percent = @damage / constants.deadlyDamage
+      context.fillStyle = if percent < .8 then "green" else "red"
+      context.fillRect 0, 3, 20 - 20 * percent, 2
+
+    util.drawOutlinedText context, @name, 0, 0
 
     context.restore()
 

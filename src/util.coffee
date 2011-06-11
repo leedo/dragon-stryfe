@@ -45,6 +45,17 @@ frontBack = (a, b) ->
 randomColor = ->
   'rgba('+ Math.floor(Math.random()*155+100) + ',' + Math.floor(Math.random()*155+100)+','+Math.floor(Math.random()*155+100)+',255)'
 
+drawOutlinedText = (context, text, x, y) ->
+  context.shadowBlur = 3
+  context.shadowColor = "#000"
+  context.fillStyle = "#000"
+  context.font = "bold 12px sans-serif"
+  context.fillText text, x-1, y-1
+  context.fillText text, x+1, y+1
+  context.fillStyle = "#fff"
+  context.font = "12px sans-serif"
+  context.fillText text, x, y
+
 module.exports = {
   length: length
   normalize: normalize
@@ -58,4 +69,5 @@ module.exports = {
   leftRight: leftRight
   frontBack: frontBack
   randomColor: randomColor
+  drawOutlinedText: drawOutlinedText
 }
