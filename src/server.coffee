@@ -2,17 +2,21 @@ express = require 'express'
 io = require 'socket.io'
 fs = require 'fs'
 stitch = require 'stitch'
-redis = require 'redis'
 util = require './util.js'
 constants = require './constants.js'
 OAuth = require('oauth').OAuth
 stream = require 'stream'
 
+redis = try
+  redis = require('redis').createClient()
+  redis.on "error", (e) -> redis = null
+catch e
+  console.log "no redis available, so persistent scores won't be kept"
+
 app = express.createServer()
 socket = io.listen app
 package = stitch.createPackage paths: [__dirname]
 
-redis_client = redis.createClient()
 object_id = 1
 next_id = -> object_id++
 
@@ -35,7 +39,7 @@ addGame = (logname) ->
     players: []
     powerups: {}
     authed: {}
-    log: constants.fullLogs ? fs.createWriteStream(logname, {encoding:'utf8'}) : {}
+    log: if constants.fullLogs then fs.createWriteStream(logname, {encoding:'utf8'}) else {}
     }
   games.push(newgame)
   setInterval send_powerup(newgame), Math.random() * 5000
@@ -187,8 +191,8 @@ socket.on "connection", (client) ->
         game.clients[msg.source] = client
 
         # broadcast the player score they are authed
-        if game.authed[self.id]
-          redis_client.get "ds-#{self.player.name}", (err, res) ->
+        if redis and game.authed[self.id]
+          redis.get "ds-#{self.player.name}", (err, res) ->
             if !err and res > 0
               broadcast(game, "syncScore", {id: self.id, score: res})
 
@@ -201,8 +205,8 @@ socket.on "connection", (client) ->
       when "scorePoint"
         player = game.players[msg.data]
         player.kills++
-        if game.authed[player.id]
-          redis_client.set("ds-#{player.name}", player.kills)
+        if redis and game.authed[player.id]
+          redis.set("ds-#{player.name}", player.kills)
         broadcast(game, "syncScore", {id: player.id, score: player.kills})
 
   client.on "disconnect", ->
