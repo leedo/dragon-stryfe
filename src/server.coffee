@@ -3,13 +3,21 @@ io = require 'socket.io'
 fs = require 'fs'
 stitch = require 'stitch'
 util = require './util.js'
+constants = require "./constants.js"
 OAuth = require('oauth').OAuth
 
-client_id = 1
 app = express.createServer()
 socket = io.listen app
-players = []
 package = stitch.createPackage paths: [__dirname]
+
+object_id = 1
+next_id = -> object_id++
+
+game = {
+  clients: {}
+  players: {}
+  powerups: {}
+}
 
 app.set "view engine", "eco"
 app.configure ->
@@ -29,7 +37,12 @@ app.get "/", (req, res) ->
     res.redirect "/game"
 
 app.get "/game", (req, res) ->
-  res.render "game", {screen_name: req.session.screen_name || "", colors: req.session.colors || []}
+  req.session.client_id = next_id()
+  res.render "game", {
+    screen_name: req.session.screen_name || "",
+    colors: req.session.colors || [],
+    client_id: req.session.client_id
+  }
 
 app.get "/login", (req, res) ->
   res.render "login"
@@ -96,36 +109,46 @@ app.get "/login_success", (req, res) ->
 
 broadcast = (action, data) ->
   body = JSON.stringify {action: action, data: data}
-  player.client.send body for player in players
+  client.send body for id, client of game.clients
 
-send = (player, action, data) ->
+send = (client, action, data) ->
   body = JSON.stringify {action: action, data: data}
-  player.client.send body
+  client.send body
 
 socket.on "connection", (client) ->
-  self =
-    client: client
-    state:
-      id: client_id++
-
-  # send client their starting position and id
-  send(self, "initSelf", self.state)
+  self = {client: client}
   # send existing players to new player
-  send(self, "addPlayers", player.state for player in players)
-  # send new player to existing players
-  broadcast("addPlayer", self.state)
-  # add ourself to the list of players
-  players.push self
+  send(client, "addPlayers", player for id, player of game.players)
+  send(client, "addPowerups", powerup for id, powerup of game.powerups)
 
   client.on "message", (msg) ->
-    # update our state and broadcast it
-    self.state = msg
-    broadcast("syncPlayer", self.state)
+    switch msg.action
+      when "initSelf"
+        broadcast("addPlayer", msg.data)
+        self.player = msg.data
+        self.id = msg.source
+        game.players[msg.source] = msg.data
+        game.clients[msg.source] = client
+      when "syncSelf"
+        self.player[k] = v for k, v of msg.data
+        broadcast("syncPlayer", msg.data)
+      when "removePowerup"
+        delete game.powerups[msg.data]
+        broadcast("removePowerup", msg.id)
 
   client.on "disconnect", ->
-    index = players.indexOf self
-    return if index == -1
-    players.splice index, 1
-    broadcast("removePlayer", self.state.id)
+    broadcast("removePlayer", self.id)
+    delete game.players[self.id]
+    delete game.clients[self.id]
 
+send_powerup = ->
+  if Object.keys(game.powerups).length < constants.maxPowerups
+    x = Math.random() * constants.universeWidth
+    y = Math.random() * constants.universeHeight
+    powerup = {id: next_id(), x: x, y: y}
+    game.powerups[powerup.id] = powerup
+    broadcast("addPowerup", powerup)
+  setTimeout send_powerup, 10 + Math.random() * 10000
+
+send_powerup()
 app.listen process.env.PORT || 8081

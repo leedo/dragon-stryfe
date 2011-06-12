@@ -6,6 +6,6 @@
     <script>
       document.addEventListener("DOMContentLoaded", function(){
         var Universe = require("universe");
-        var universe = new Universe("<%= @screen_name %>", <%- JSON.stringify @colors %>);
+        var universe = new Universe(<%= @client_id %>, "<%= @screen_name %>", <%- JSON.stringify @colors %>);
       }, false);
     </script>

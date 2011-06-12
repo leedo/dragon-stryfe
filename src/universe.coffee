@@ -4,32 +4,30 @@ util = require 'util'
 constants = require 'constants'
 
 module.exports = class Universe
-  constructor: (starting_name, colors) ->
-    @self
+  constructor: (id, name, colors) ->
     @players = {}
-    @powerups = []
+    @powerups = {}
     @tick_count = 0
-    @starting_name = starting_name
-    @colors = colors
-    @is_drawing
-    @draw_buf = []
+    @stopped = true
+    @is_touching = false
     @board = document.getElementById "universe"
     @context = @board.getContext "2d"
 
+    @createSelf id, name, colors
     @connect()
 
   gameTick: ->
+    return if @stopped
     @tick_count++
 
     # this clears the canvas
     @board.width = @board.width
+    @drawPowerups()
 
-    @addPowerup() if @powerups.length < constants.maxPowerups and @tick_count % constants.powerupTimer == 0
     @tickPlayer player for id, player of @players
     @checkDeath()
 
     @drawOverlay()
-    @drawPowerups()
 
     # sync self every tick?
     @syncSelf() #if @tick_count % constants.syncTimer == 0
@@ -42,15 +40,16 @@ module.exports = class Universe
     @drawHealthMeter()
     @drawPlayerList()
 
-  addPowerup: ->
-    x = Math.random() * @board.width
-    y = Math.random() * @board.height
-    console.log "adding powerup #{x}, #{y}"
-    powerup =  new Powerup x, y
-    @powerups.push powerup
+  addPowerups: (new_powerups) ->
+    for state in new_powerups
+      @powerups[state.id] = new Powerup state
+
+  addPowerup: (opts) ->
+    console.log "add powerup"
+    @powerups[opts.id] = new Powerup opts
 
   drawPowerups: ->
-    powerup.draw @context for powerup in @powerups
+    powerup.draw @context for id, powerup of @powerups
 
   drawPlayerList: ->
     [x, y] = [@board.width - 100, 100]
@@ -61,9 +60,9 @@ module.exports = class Universe
 
   drawStats: ->
     @context.fillStyle = "#fff"
-    @context.fillText "x: #{parseInt @self.position.x}", 10, 10
-    @context.fillText "y: #{parseInt @self.position.y}", 10, 20
-    @context.fillText "angle: #{@self.position.angle}", 10, 30
+    @context.fillText "x: #{parseInt @self.x}", 10, 10
+    @context.fillText "y: #{parseInt @self.y}", 10, 20
+    @context.fillText "angle: #{@self.angle}", 10, 30
     @context.fillText "speed: #{@self.speed}", 10, 40
     @context.fillText "thrust: #{@self.energy}", 10, 50
     @context.fillText "id: #{@self.id}", 10, 60
@@ -75,53 +74,68 @@ module.exports = class Universe
     else
       @context.fillText "No touch target!", 10, 90
       @context.fillText "", 10, 100  # just to simplify further prints
-    totarget = util.subtractVec @self.controls.target, @self.position
+    totarget = util.subtractVec @self.controls.target, @self
     toTargAngle =  Math.PI + Math.atan2(totarget.x, totarget.y)
     @context.fillText "Target angle: #{toTargAngle}", 10, 110
     @context.fillText "ToTarget vectorx: #{totarget.x}", 10, 120
     @context.fillText "ToTarget vectory: #{totarget.y}", 10, 130
-    @context.fillText "DistToTarget: " + util.distanceFrom(@self.position, @self.controls.target), 10, 140
-    @context.fillText "Want to turn: " + (toTargAngle - @self.position.angle), 10, 150
+    @context.fillText "DistToTarget: " + util.distanceFrom(@self, @self.controls.target), 10, 140
+    @context.fillText "Want to turn: " + (toTargAngle - @self.angle), 10, 150
 
   syncSelf: ->
-    @socket.send @self.serialized()
+    @socket.send
+      source: @self.id
+      action: "syncSelf"
+      data: @self.serialized()
+
+  removePowerup: (id) ->
+    delete @powerups[id]
 
   tickPlayer: (player) ->
     # flip player around if he is at any walls
-    if player.position.x <= 0 or player.position.x >= @board.width
-      player.position.angle = 2 * Math.PI - player.position.angle
-    else if  player.position.y >= @board.height or player.position.y <= 0
-      player.position.angle = Math.PI - player.position.angle
+    if player.x <= 0 or player.x >= @board.width
+      player.angle = 2 * Math.PI - player.angle
+    else if  player.y >= @board.height or player.y <= 0
+      player.angle = Math.PI - player.angle
 
     # see if this player hit any powerups
-    for i, powerup of @powerups
-      if powerup.contains player.position
+    for id, powerup of @powerups
+      if powerup.contains player
         powerup.apply_bonus player
-        @powerups.splice i, 1
+        @removePowerup id
+        # only tell the server we hit the powerup
+        if player.id == @self.id
+          @socket.send {action: "removePowerup", data: id}
 
     player.gameTick()
     player.tryToBreath(target) for id, target of @players
     player.draw @context
     player.drawName(@context, player != @self)
 
-  initSelf: (state) ->
-    console.log "init self with id #{state.id}"
+  createSelf: (id, name, colors) ->
+    console.log "create self with id #{id}"
+    if !name
+      name = prompt "What is your dragon's name?"
+      name = name.substr 0, 16
 
-    # just override the default with center
-    state.x = @board.width / 2
-    state.y = @board.height / 2
-    state.colors = @colors
-    if !@starting_name
-      state.name = prompt "What is your dragon's name?"
-      state.name = state.name.substr 0, 16
-    else
-      state.name = @starting_name
+    @self = new Player
+      id: id
+      name: name
+      body_color: colors[4] || util.randomColor()
+      highlight_color: colors[2] || util.randomColor()
+      x: @board.width / 2
+      y: @board.height / 2
 
-    @self = @addPlayer state
-
+  startGame: ->
+    @stopped = false
+    @players[@self.id] = @self
     @enableControls()
-    @syncSelf()
     @gameTick()
+
+  stopGame: ->
+    @stopped = true
+    @tick_count = 0
+    players = {}
 
   disableControls: ->
     @board.removeEventListener "mousedown"
@@ -129,25 +143,21 @@ module.exports = class Universe
     document.removeEventListener "keydown"
 
   enableControls: ->
-    # capture points into @draw_buf on touch
     @board.addEventListener "mousedown", (e) =>
       return unless e.target == @board and not @self.controls.anyPressed()
       @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
       @self.controls.mousedown = true
-      @is_drawing = true
-
-      @draw_buf = []
+      @is_touching = true
     , false
     @board.addEventListener "mousemove", (e) =>
-      return unless @is_drawing or (not @self.controls.anyPressed() and @self.controls.mouseDown)
+      return unless @is_touching or (not @self.controls.anyPressed() and @self.controls.mouseDown)
       @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
-      @draw_buf.push e.clientX, e.clientY
     , false
     @board.addEventListener "mouseup", (e) =>
       @self.controls.mouseDown = false
-      return unless @is_drawing
+      return unless @is_touching
       #@self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
-      @is_drawing = false
+      @is_touching = false
     , false
 
     document.addEventListener "keyup", (e) =>
@@ -185,9 +195,7 @@ module.exports = class Universe
     delete @players[id]
 
   addPlayer: (state) ->
-    console.log "add player #{state.id}"
-    state.max_x = @board.width
-    state.max_y = @board.height
+    console.log "add player #{state.id}", state
     player = new Player state
     @players[player.id] = player
     return player
@@ -198,18 +206,22 @@ module.exports = class Universe
   syncPlayer: (state) ->
     player = @players[state.id]
     return if !player or player.id == @self.id
-    player.update state
+    player[k] = v for k, v of state
 
   connect: ->
     @socket = new io.Socket window.location.hostname
-    @socket.connect()
+    @socket.on 'connect', =>
+      @socket.send
+        source: @self.id
+        action: "initSelf"
+        data: @self.serialized true
+      @startGame()
     @socket.on 'disconnect', =>
-      players = {}
-      @self = null
-      @disableControls()
+      @stopGame()
     @socket.on 'message', (msg) =>
       req = JSON.parse msg
       @[ req.action ](req.data)
+    @socket.connect()
 
   drawEnergyMeter: ->
     [x, y] = [10, 35]
@@ -241,8 +253,8 @@ module.exports = class Universe
       else if @self.dead >= constants.deathAnimationTime
         @self.damage = 0
         @self.dead = 0
-        @self.position.x = Math.random() * constants.universeWidth
-        @self.position.y = Math.random() * constants.universeHeight
+        @self.x = Math.random() * constants.universeWidth
+        @self.y = Math.random() * constants.universeHeight
         @self.flash = 1
         @self.energy = constants.maxEnergy
         # hacky...  should draw this in the dragon drawing routine?
