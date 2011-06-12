@@ -58,7 +58,7 @@ openGame = () ->
 
   # no open games, make a new one
   console.log "Passed " + players + " concurrent players in " + gamecount + " games, adding new game"
-  logname = "/tmp/game" + gamecount + ".log"
+  logname = constants.logPrefix + "game" + gamecount + ".log"
   return addGame(logname)
 
 # no real harm in keeping around the empty games, so no game delete function

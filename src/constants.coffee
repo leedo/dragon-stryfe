@@ -19,3 +19,4 @@ module.exports =
   powerupTimer: 400
   maxPlayers: 10
   fullLogs: false
+  logPrefix: "/tmp/"
