@@ -18,3 +18,4 @@ module.exports =
   maxPowerups: 5
   powerupTimer: 400
   maxPlayers: 10
+  fullLogs: false

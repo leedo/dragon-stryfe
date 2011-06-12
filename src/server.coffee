@@ -6,6 +6,7 @@ redis = require 'redis'
 util = require './util.js'
 constants = require './constants.js'
 OAuth = require('oauth').OAuth
+stream = require 'stream'
 
 app = express.createServer()
 socket = io.listen app
@@ -28,12 +29,13 @@ send_powerup = (game) ->
     broadcast(g, "addPowerup", powerup)
 
 
-addGame = () ->
+addGame = (logname) ->
   newgame = {
     clients: {}
     players: []
     powerups: {}
     authed: {}
+    log: constants.fullLogs ? fs.createWriteStream(logname, {encoding:'utf8'}) : {}
     }
   games.push(newgame)
   setInterval send_powerup(newgame), Math.random() * 5000
@@ -50,13 +52,14 @@ openGame = () ->
       if p
         playercount++
     if playercount < constants.maxPlayers
-      console.log "Found a spot in game #" + gamecount + " which had " + playercount + " players"
+      console.log "Found a spot in game #" + (gamecount - 1) + " which had " + playercount + " players"
       return game
     players += playercount
 
   # no open games, make a new one
   console.log "Passed " + players + " concurrent players in " + gamecount + " games, adding new game"
-  return addGame()
+  logname = "/tmp/game" + gamecount + ".log"
+  return addGame(logname)
 
 # no real harm in keeping around the empty games, so no game delete function
 # maybe add something to mere two games' sets of players later?
@@ -158,6 +161,8 @@ app.get "/login_success", (req, res) ->
 broadcast = (game, action, data) ->
   body = JSON.stringify {action: action, data: data}
   client.send body for id, client of game.clients
+  if constants.fullLogs
+    game.log.write body
 
 send = (client, action, data) ->
   body = JSON.stringify {action: action, data: data}
