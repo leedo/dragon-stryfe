@@ -22,9 +22,11 @@ module.exports = class Player extends Animation
     @damage = 0
     @dead = 0
     @flash = 0
+    @kills = 0
+    @last_attacker = null
 
   serialized: (full) ->
-    fields = ["id", "controls", "energy", "x", "y", "angle", "speed", "damage", "dead"]
+    fields = ["id", "controls", "energy", "x", "y", "angle", "speed", "damage", "dead", "kills"]
     data = {}
     if full
       fields = fields.concat ["name", "body_color", "highlight_color"]
@@ -143,6 +145,9 @@ module.exports = class Player extends Animation
       if Math.abs(angleToPlayer - @angle) < 0.8
         @breathing = angleToPlayer
         target.damage += Math.max(@speed, 0)
+        # set our ID as last attacker so it can be used to score
+        # if it was a kill
+        target.last_attacker = @id
         breath.play()
 
   drawTail: (context) ->

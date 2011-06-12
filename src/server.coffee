@@ -135,6 +135,10 @@ socket.on "connection", (client) ->
       when "removePowerup"
         delete game.powerups[msg.data]
         broadcast("removePowerup", msg.id)
+      when "scorePoint"
+        player = game.players[msg.data]
+        player.kills++
+        broadcast("scorePoint", player.id)
 
   client.on "disconnect", ->
     broadcast("removePlayer", self.id)

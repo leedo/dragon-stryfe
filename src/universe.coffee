@@ -5,8 +5,8 @@ constants = require 'constants'
 
 module.exports = class Universe
   constructor: (id, name, colors) ->
-    @players = {}
-    @powerups = {}
+    @player_map = {}
+    @powerup_map = {}
     @tick_count = 0
     @stopped = true
     @is_touching = false
@@ -16,6 +16,31 @@ module.exports = class Universe
     @createSelf id, name, colors
     @connect()
 
+  startGame: ->
+    @stopped = false
+    @player_map[@self.id] = @self
+    @enableControls()
+    @gameTick()
+
+  stopGame: ->
+    @stopped = true
+    @tick_count = 0
+    @player_map = {}
+
+  createSelf: (id, name, colors) ->
+    console.log "create self with id #{id}"
+    if !name
+      name = prompt "What is your dragon's name?"
+      name = name.substr 0, 16
+
+    @self = new Player
+      id: id
+      name: name
+      body_color: colors[4] || util.randomColor()
+      highlight_color: colors[2] || util.randomColor()
+      x: @board.width / 2
+      y: @board.height / 2
+
   gameTick: ->
     return if @stopped
     @tick_count++
@@ -24,7 +49,7 @@ module.exports = class Universe
     @board.width = @board.width
     @drawPowerups()
 
-    @tickPlayer player for id, player of @players
+    @tickPlayer player for id, player of @players()
     @checkDeath()
 
     @drawOverlay()
@@ -34,19 +59,74 @@ module.exports = class Universe
 
     setTimeout (=> @gameTick()), 40
 
-  drawOverlay: ->
-    #@drawStats()
-    @drawEnergyMeter()
-    @drawHealthMeter()
-    @drawPlayerList()
+  tickPlayer: (player) ->
+    # flip player around if he is at any walls
+    if player.x <= 0 or player.x >= @board.width
+      player.angle = 2 * Math.PI - player.angle
+    else if  player.y >= @board.height or player.y <= 0
+      player.angle = Math.PI - player.angle
+
+    # see if this player hit any powerups
+    for id, powerup of @powerups
+      if powerup.contains player
+        powerup.apply_bonus player
+        @removePowerup id
+        # only tell the server we hit the powerup
+        if player.id == @self.id
+          @socket.send {action: "removePowerup", data: id}
+
+    player.gameTick()
+    player.tryToBreath(target) for id, target of @players()
+    player.draw @context
+    player.drawName(@context, player != @self)
+
+  players: ->
+    player for id, player of @player_map
+
+  getPlayer: (id) ->
+    @player_map[id]
+
+  removePlayer: (id) ->
+    console.log "remove player #{id}"
+    delete @player_map[id]
+
+  addPlayer: (state) ->
+    console.log "add player #{state.id}", state
+    player = new Player state
+    @player_map[player.id] = player
+    return player
+
+  addPlayers: (new_players) ->
+    @addPlayer(player) for player in new_players
+
+  syncPlayer: (state) ->
+    player = @getPlayer state.id
+    return if !player or player.id == @self.id
+    player[k] = v for k, v of state
+
+  powerups: ->
+    powerup for id, powerup in @powerup_map
+
+  removePowerup: (id) ->
+    delete @powerups[id]
+
+  addPowerup: (opts) ->
+    console.log "add powerup"
+    @powerups[opts.id] = new Powerup opts
 
   addPowerups: (new_powerups) ->
     for state in new_powerups
       @powerups[state.id] = new Powerup state
 
-  addPowerup: (opts) ->
-    console.log "add powerup"
-    @powerups[opts.id] = new Powerup opts
+  scorePoint: (player_id) ->
+    player = @getPlayer player_id
+    player.kills++
+
+  drawOverlay: ->
+    #@drawStats()
+    @drawEnergyMeter()
+    @drawHealthMeter()
+    @drawPlayerList()
 
   drawPowerups: ->
     powerup.draw @context for id, powerup of @powerups
@@ -54,8 +134,9 @@ module.exports = class Universe
   drawPlayerList: ->
     [x, y] = [@board.width - 100, 100]
     @context.fillStyle = "#fff"
-    for id, player of @players
-      @context.fillText "#{parseInt player.damage} #{player.name}", x, y
+    players = @players().sort (a, b) -> b.kills - a.kills
+    for player in players
+      @context.fillText "#{parseInt player.kills} #{player.name}", x, y
       y += 10
 
   drawStats: ->
@@ -81,61 +162,6 @@ module.exports = class Universe
     @context.fillText "ToTarget vectory: #{totarget.y}", 10, 130
     @context.fillText "DistToTarget: " + util.distanceFrom(@self, @self.controls.target), 10, 140
     @context.fillText "Want to turn: " + (toTargAngle - @self.angle), 10, 150
-
-  syncSelf: ->
-    @socket.send
-      source: @self.id
-      action: "syncSelf"
-      data: @self.serialized()
-
-  removePowerup: (id) ->
-    delete @powerups[id]
-
-  tickPlayer: (player) ->
-    # flip player around if he is at any walls
-    if player.x <= 0 or player.x >= @board.width
-      player.angle = 2 * Math.PI - player.angle
-    else if  player.y >= @board.height or player.y <= 0
-      player.angle = Math.PI - player.angle
-
-    # see if this player hit any powerups
-    for id, powerup of @powerups
-      if powerup.contains player
-        powerup.apply_bonus player
-        @removePowerup id
-        # only tell the server we hit the powerup
-        if player.id == @self.id
-          @socket.send {action: "removePowerup", data: id}
-
-    player.gameTick()
-    player.tryToBreath(target) for id, target of @players
-    player.draw @context
-    player.drawName(@context, player != @self)
-
-  createSelf: (id, name, colors) ->
-    console.log "create self with id #{id}"
-    if !name
-      name = prompt "What is your dragon's name?"
-      name = name.substr 0, 16
-
-    @self = new Player
-      id: id
-      name: name
-      body_color: colors[4] || util.randomColor()
-      highlight_color: colors[2] || util.randomColor()
-      x: @board.width / 2
-      y: @board.height / 2
-
-  startGame: ->
-    @stopped = false
-    @players[@self.id] = @self
-    @enableControls()
-    @gameTick()
-
-  stopGame: ->
-    @stopped = true
-    @tick_count = 0
-    players = {}
 
   disableControls: ->
     @board.removeEventListener "mousedown"
@@ -190,31 +216,13 @@ module.exports = class Universe
       @syncSelf()
     , false
 
-  removePlayer: (id) ->
-    console.log "remove player #{id}"
-    delete @players[id]
-
-  addPlayer: (state) ->
-    console.log "add player #{state.id}", state
-    player = new Player state
-    @players[player.id] = player
-    return player
-
-  addPlayers: (new_players) ->
-    @addPlayer(player) for player in new_players
-
-  syncPlayer: (state) ->
-    player = @players[state.id]
-    return if !player or player.id == @self.id
-    player[k] = v for k, v of state
+  syncSelf: ->
+    @sendAction "syncSelf", @self.serialized()
 
   connect: ->
     @socket = new io.Socket window.location.hostname
     @socket.on 'connect', =>
-      @socket.send
-        source: @self.id
-        action: "initSelf"
-        data: @self.serialized true
+      @sendAction "initSelf", @self.serialized true
       @startGame()
     @socket.on 'disconnect', =>
       @stopGame()
@@ -243,12 +251,19 @@ module.exports = class Universe
     @context.fillStyle = if percent < .8 then "green" else "red"
     @context.fillRect x, y, 100 - 100 * percent, 5
 
+  sendAction: (action, data) ->
+    @socket.send
+      source: @self.id
+      action: action
+      data: data
+
   checkDeath: ->
     # I'm the authoritative source on whether I'm dead
     # make people vote to find cheaters later?
     if @self.damage > constants.deadlyDamage or @self.dead
       if @self.dead == 0
         console.log "#{@self.name} died at tick #{@tick_count}"
+        @sendAction "scorePoint", @self.last_attacker
         @self.dead = 1
       else if @self.dead >= constants.deathAnimationTime
         @self.damage = 0
