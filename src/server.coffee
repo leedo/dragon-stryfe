@@ -24,13 +24,14 @@ games = []
 
 send_powerup = (game) ->
   g = game
-  () ->
+  cb = () ->
    if Object.keys(g.powerups).length < constants.maxPowerups
     x = Math.random() * constants.universeWidth
     y = Math.random() * constants.universeHeight
     powerup = {id: next_id(), x: x, y: y}
     g.powerups[powerup.id] = powerup
     broadcast(g, "addPowerup", powerup)
+    setTimeout cb, Math.random() * 5000
 
 
 addGame = (logname) ->
@@ -42,7 +43,7 @@ addGame = (logname) ->
     log: if constants.fullLogs then fs.createWriteStream(logname, {encoding:'utf8'}) else {}
     }
   games.push(newgame)
-  setInterval send_powerup(newgame), Math.random() * 5000
+  setTimeout send_powerup(newgame), Math.random() * 5000
   return newgame
 
 
