@@ -8,15 +8,17 @@
     <table id="scoreboard" cellpadding="0" cellspacing="0" border="0">
       <thead>
         <tr>
+          <td class="rank"></td>
+          <td class="player"></td>
           <td class="kills">Kills</td>
-          <td>Twitter Name</td>
         </tr>
       </thead>
       <tbody>
-        <% for entry in @scores: %>
+        <% for i,entry of @scores: %>
         <tr>
+          <td class="rank">#<%= parseInt(i) + 1 %></td> 
+          <td class="player"><%= entry.name %></td>
           <td class="kills"><%= entry.score %></td>
-          <td><%= entry.name %></td>
         </tr>
         <% end %>
       </tbody>

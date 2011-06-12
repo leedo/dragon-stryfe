@@ -41,6 +41,7 @@ a {
 }
 
 #scoreboard thead td,
+#scoreboard thead td.rank,
 #scoreboard thead td.kills {
   font-family: sans-serif;
   font-size: 0.8em;
@@ -50,7 +51,12 @@ a {
 #scoreboard td.kills {
   text-align: right;
   font-family: monospace;
-  width: 45%;
+  padding-right: 50px;
+}
+
+#scoreboard td.rank {
+  text-align: right;
+  width: 100px;
 }
 
 #scoreboard {

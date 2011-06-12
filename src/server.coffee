@@ -110,7 +110,7 @@ app.get "/scoreboard", (req, res) ->
       data = []
       data.push {name: keys[i].replace(/^ds-/,""), score: val} for i, val of vals
       console.log data
-      sendScores data.sort (a, b) -> a.score - b.score
+      sendScores data.sort (a, b) -> b.score - a.score
 
 
 app.get "/login", (req, res) ->
