@@ -39,3 +39,41 @@ a {
   color: #fff;
   text-decoration: none;
 }
+
+#scoreboard thead td,
+#scoreboard thead td.kills {
+  font-family: sans-serif;
+  font-size: 0.8em;
+  border-bottom: 1px solid #666;
+}
+
+#scoreboard td.kills {
+  text-align: right;
+  font-family: monospace;
+  width: 45%;
+}
+
+#scoreboard {
+  width: 100%;
+}
+
+#scoreboard td {
+  padding: 4px;
+  color: #fff;
+  border-bottom: 1px solid #333;
+}
+
+#scoreboard-frame {
+  width: 500px;
+  height: 300px;
+  border: none;
+  margin: 0 auto;
+  display: block;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 100px;
+  font-weight: normal;
+  color: #333;
+}

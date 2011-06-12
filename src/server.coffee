@@ -99,6 +99,19 @@ app.get "/game", (req, res) ->
     client_id: req.session.client_id
   }
 
+app.get "/scoreboard", (req, res) ->
+  sendScores = (scores) ->
+    res.partial "scoreboard", {scores: scores}
+
+  redis.keys "ds-*", (err, keys) ->
+    return sendScores {} if err or !keys.length
+    redis.mget keys, (err, vals) ->
+      return sendScores {} if err or !vals.length
+      data = {}
+      data[keys[i].replace(/^ds-/,"")] = val for i, val of vals
+      sendScores data
+
+
 app.get "/login", (req, res) ->
   res.render "login"
 
@@ -190,12 +203,6 @@ socket.on "connection", (client) ->
         game.players[msg.source] = msg.data
         game.clients[msg.source] = client
 
-        # broadcast the player score they are authed
-        if redis and game.authed[self.id]
-          redis.get "ds-#{self.player.name}", (err, res) ->
-            if !err and res > 0
-              broadcast(game, "syncScore", {id: self.id, score: res})
-
       when "syncSelf"
         self.player[k] = v for k, v of msg.data
         broadcast(game, "syncPlayer", msg.data)
@@ -205,8 +212,8 @@ socket.on "connection", (client) ->
       when "scorePoint"
         player = game.players[msg.data]
         player.kills++
-        if redis and game.authed[player.id]
-          redis.set("ds-#{player.name}", player.kills)
+        # increment their score in redis if they are authed
+        redis.incr "ds-#{player.name}" if redis and game.authed[player.id]
         broadcast(game, "syncScore", {id: player.id, score: player.kills})
 
   client.on "disconnect", ->

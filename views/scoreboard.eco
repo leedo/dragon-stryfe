@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <link type="text/css" rel="stylesheet" href="/game.css" />
+    <meta name="viewport" content="width=800, user-scalable=no">
+    <meta name="refresh" content="30">
+  </head>
+  <body>
+    <table id="scoreboard" cellpadding="0" cellspacing="0" border="0">
+      <thead>
+        <tr>
+          <td class="kills">Kills</td>
+          <td>Twitter Name</td>
+        </tr>
+      </thead>
+      <tbody>
+        <% for player, score of @scores: %>
+        <tr>
+          <td class="kills"><%= score %></td>
+          <td><%= player %></td>
+        </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </body>
+</html>
+        
