@@ -247,9 +247,9 @@ module.exports = class Universe
     y += 3
     @context.fillStyle = "rgba(255,255,255,0.2)"
     @context.fillRect x, y, 100, 5
-    percent = @self.damage / constants.deadlyDamage
-    @context.fillStyle = if percent < .8 then "green" else "red"
-    @context.fillRect x, y, 100 - 100 * percent, 5
+    percent = @self.hpPercent()
+    @context.fillStyle = if percent > .2 then "green" else "red"
+    @context.fillRect x, y, percent * 100, 5
 
   sendAction: (action, data) ->
     @socket.send

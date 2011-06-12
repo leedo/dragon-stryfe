@@ -195,6 +195,12 @@ module.exports = class Player extends Animation
 
     context.restore()
 
+  hp: ->
+    util.clamp constants.deadlyDamage - @damage, 0, constants.deadlyDamage
+
+  hpPercent: ->
+    @hp() / constants.deadlyDamage
+
   drawName: (context, health) ->
     context.save()
     context.translate @x - 4, @y - 16
@@ -202,9 +208,10 @@ module.exports = class Player extends Animation
     if health
       context.fillStyle = "#000"
       context.fillRect -1, 2, 22, 4
-      percent = @damage / constants.deadlyDamage
-      context.fillStyle = if percent < .8 then "green" else "red"
-      context.fillRect 0, 3, 20 - 20 * percent, 2
+      percent = @hpPercent()
+      console.log percent
+      context.fillStyle = if percent > .2 then "green" else "red"
+      context.fillRect 0, 3, percent * 20, 2
 
     util.drawOutlinedText context, @name, 0, 0
 
