@@ -104,12 +104,13 @@ app.get "/scoreboard", (req, res) ->
     res.partial "scoreboard", {scores: scores}
 
   redis.keys "ds-*", (err, keys) ->
-    return sendScores {} if err or !keys.length
+    return sendScores [] if err or !keys.length
     redis.mget keys, (err, vals) ->
-      return sendScores {} if err or !vals.length
-      data = {}
-      data[keys[i].replace(/^ds-/,"")] = val for i, val of vals
-      sendScores data
+      return sendScores [] if err or !vals.length
+      data = []
+      data.push {name: keys[i].replace(/^ds-/,""), score: val} for i, val of vals
+      console.log data
+      sendScores data.sort (a, b) -> a.score - b.score
 
 
 app.get "/login", (req, res) ->

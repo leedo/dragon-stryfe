@@ -13,10 +13,10 @@
         </tr>
       </thead>
       <tbody>
-        <% for player, score of @scores: %>
+        <% for entry in @scores: %>
         <tr>
-          <td class="kills"><%= score %></td>
-          <td><%= player %></td>
+          <td class="kills"><%= entry.score %></td>
+          <td><%= entry.name %></td>
         </tr>
         <% end %>
       </tbody>
