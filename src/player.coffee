@@ -1,6 +1,5 @@
 ControlState = require "controlstate"
 Animation = require "animation"
-
 constants = require "constants"
 
 # some definitions for the tweakable bits
@@ -28,17 +27,15 @@ module.exports = class Player extends Animation
     fields = ["id", "controls", "energy", "x", "y", "angle", "speed", "damage", "dead"]
     data = {}
     if full
-      fields = fields.concat [
-        "name", "body_color", "highlight_color"
-      ]
+      fields = fields.concat ["name", "body_color", "highlight_color"]
     for field in fields
-      data[field] = @[field] 
+      data[field] = @[field]
     return data
 
   deathTick: ->
     screech.play() if @dead == 1
     @angle = Math.PI * @dead / 10.0
-    @speed = Math.max(@speed - 0.5, 0)
+    @speed = Math.max @speed - 0.5, 0
     @dead++
 
   handleInput: ->
