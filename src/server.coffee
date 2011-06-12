@@ -23,14 +23,13 @@ next_id = -> object_id++
 games = []
 
 send_powerup = (game) ->
-  g = game
-  cb = () ->
-   if Object.keys(g.powerups).length < constants.maxPowerups
-    x = Math.random() * constants.universeWidth
-    y = Math.random() * constants.universeHeight
-    powerup = {id: next_id(), x: x, y: y}
-    g.powerups[powerup.id] = powerup
-    broadcast(g, "addPowerup", powerup)
+  cb = ->
+    if Object.keys(game.powerups).length < constants.maxPowerups
+      x = Math.random() * constants.universeWidth
+      y = Math.random() * constants.universeHeight
+      powerup = {id: next_id(), x: x, y: y}
+      game.powerups[powerup.id] = powerup
+      broadcast(game, "addPowerup", powerup)
     setTimeout cb, Math.random() * 5000
 
 
@@ -42,7 +41,7 @@ addGame = (logname) ->
     authed: {}
     log: if constants.fullLogs then fs.createWriteStream(logname, {encoding:'utf8'}) else {}
     }
-  games.push(newgame)
+  games.push newgame
   setTimeout send_powerup(newgame), Math.random() * 5000
   return newgame
 
@@ -103,6 +102,8 @@ app.get "/game", (req, res) ->
 app.get "/scoreboard", (req, res) ->
   sendScores = (scores) ->
     res.partial "scoreboard", {scores: scores}
+
+  return sendScores [] unless redis
 
   redis.keys "ds-*", (err, keys) ->
     return sendScores [] if err or !keys.length
