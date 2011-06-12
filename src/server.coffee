@@ -2,14 +2,16 @@ express = require 'express'
 io = require 'socket.io'
 fs = require 'fs'
 stitch = require 'stitch'
+redis = require 'redis'
 util = require './util.js'
-constants = require "./constants.js"
+constants = require './constants.js'
 OAuth = require('oauth').OAuth
 
 app = express.createServer()
 socket = io.listen app
 package = stitch.createPackage paths: [__dirname]
 
+redis_client = redis.createClient()
 object_id = 1
 next_id = -> object_id++
 
@@ -17,6 +19,7 @@ game = {
   clients: {}
   players: {}
   powerups: {}
+  authed: {}
 }
 
 app.set "view engine", "eco"
@@ -38,6 +41,11 @@ app.get "/", (req, res) ->
 
 app.get "/game", (req, res) ->
   req.session.client_id = next_id()
+
+  # keep track of users that have authed against twitter
+  # so we can use them in the high score board
+  game.authed[req.session.client_id] = true if req.session.screen_name
+
   res.render "game", {
     screen_name: req.session.screen_name || "",
     colors: req.session.colors || [],
@@ -117,6 +125,7 @@ send = (client, action, data) ->
 
 socket.on "connection", (client) ->
   self = {client: client}
+
   # send existing players to new player
   send(client, "addPlayers", player for id, player of game.players)
   send(client, "addPowerups", powerup for id, powerup of game.powerups)
@@ -129,6 +138,13 @@ socket.on "connection", (client) ->
         self.id = msg.source
         game.players[msg.source] = msg.data
         game.clients[msg.source] = client
+
+        # broadcast the player score they are authed
+        if game.authed[self.id]
+          redis_client.get "ds-#{self.player.name}", (err, res) ->
+            if !err and res > 0
+              broadcast("syncScore", {id: self.id, score: res})
+
       when "syncSelf"
         self.player[k] = v for k, v of msg.data
         broadcast("syncPlayer", msg.data)
@@ -138,7 +154,9 @@ socket.on "connection", (client) ->
       when "scorePoint"
         player = game.players[msg.data]
         player.kills++
-        broadcast("scorePoint", player.id)
+        if game.authed[player.id]
+          redis_client.set("ds-#{player.name}", player.kills)
+        broadcast("syncScore", {id: player.id, score: player.kills})
 
   client.on "disconnect", ->
     broadcast("removePlayer", self.id)

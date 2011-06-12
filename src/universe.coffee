@@ -118,9 +118,9 @@ module.exports = class Universe
     for state in new_powerups
       @powerups[state.id] = new Powerup state
 
-  scorePoint: (player_id) ->
-    player = @getPlayer player_id
-    player.kills++
+  syncScore: (data) ->
+    player = @getPlayer data.id
+    player.kills = data.score
 
   drawOverlay: ->
     #@drawStats()
