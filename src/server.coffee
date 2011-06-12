@@ -15,12 +15,51 @@ redis_client = redis.createClient()
 object_id = 1
 next_id = -> object_id++
 
-game = {
-  clients: {}
-  players: {}
-  powerups: {}
-  authed: {}
-}
+games = []
+
+send_powerup = (game) ->
+  g = game
+  () ->
+   if Object.keys(g.powerups).length < constants.maxPowerups
+    x = Math.random() * constants.universeWidth
+    y = Math.random() * constants.universeHeight
+    powerup = {id: next_id(), x: x, y: y}
+    g.powerups[powerup.id] = powerup
+    broadcast(g, "addPowerup", powerup)
+
+
+addGame = () ->
+  newgame = {
+    clients: {}
+    players: []
+    powerups: {}
+    authed: {}
+    }
+  games.push(newgame)
+  setInterval send_powerup(newgame), Math.random() * 5000
+  return newgame
+
+
+openGame = () ->
+  players = 0
+  gamecount = 0
+  for game in games
+    gamecount++
+    playercount = 0
+    for p in game.players
+      if p
+        playercount++
+    if playercount < constants.maxPlayers
+      console.log "Found a spot in game #" + gamecount + " which had " + playercount + " players"
+      return game
+    players += playercount
+
+  # no open games, make a new one
+  console.log "Passed " + players + " concurrent players in " + gamecount + " games, adding new game"
+  return addGame()
+
+# no real harm in keeping around the empty games, so no game delete function
+# maybe add something to mere two games' sets of players later?
 
 app.set "view engine", "eco"
 app.configure ->
@@ -44,7 +83,8 @@ app.get "/game", (req, res) ->
 
   # keep track of users that have authed against twitter
   # so we can use them in the high score board
-  game.authed[req.session.client_id] = true if req.session.screen_name
+  for game in games
+    game.authed[req.session.client_id] = true if req.session.screen_name
 
   res.render "game", {
     screen_name: req.session.screen_name || "",
@@ -115,7 +155,7 @@ app.get "/login_success", (req, res) ->
             ]
             res.redirect "/"
 
-broadcast = (action, data) ->
+broadcast = (game, action, data) ->
   body = JSON.stringify {action: action, data: data}
   client.send body for id, client of game.clients
 
@@ -126,6 +166,8 @@ send = (client, action, data) ->
 socket.on "connection", (client) ->
   self = {client: client}
 
+  game = openGame()
+
   # send existing players to new player
   send(client, "addPlayers", player for id, player of game.players)
   send(client, "addPowerups", powerup for id, powerup of game.powerups)
@@ -133,7 +175,7 @@ socket.on "connection", (client) ->
   client.on "message", (msg) ->
     switch msg.action
       when "initSelf"
-        broadcast("addPlayer", msg.data)
+        broadcast(game, "addPlayer", msg.data)
         self.player = msg.data
         self.id = msg.source
         game.players[msg.source] = msg.data
@@ -143,34 +185,25 @@ socket.on "connection", (client) ->
         if game.authed[self.id]
           redis_client.get "ds-#{self.player.name}", (err, res) ->
             if !err and res > 0
-              broadcast("syncScore", {id: self.id, score: res})
+              broadcast(game, "syncScore", {id: self.id, score: res})
 
       when "syncSelf"
         self.player[k] = v for k, v of msg.data
-        broadcast("syncPlayer", msg.data)
+        broadcast(game, "syncPlayer", msg.data)
       when "removePowerup"
         delete game.powerups[msg.data]
-        broadcast("removePowerup", msg.id)
+        broadcast(game, "removePowerup", msg.id)
       when "scorePoint"
         player = game.players[msg.data]
         player.kills++
         if game.authed[player.id]
           redis_client.set("ds-#{player.name}", player.kills)
-        broadcast("syncScore", {id: player.id, score: player.kills})
+        broadcast(game, "syncScore", {id: player.id, score: player.kills})
 
   client.on "disconnect", ->
-    broadcast("removePlayer", self.id)
+    broadcast(game, "removePlayer", self.id)
     delete game.players[self.id]
     delete game.clients[self.id]
 
-send_powerup = ->
-  if Object.keys(game.powerups).length < constants.maxPowerups
-    x = Math.random() * constants.universeWidth
-    y = Math.random() * constants.universeHeight
-    powerup = {id: next_id(), x: x, y: y}
-    game.powerups[powerup.id] = powerup
-    broadcast("addPowerup", powerup)
-  setTimeout send_powerup, Math.random() * 5000
 
-send_powerup()
 app.listen process.env.PORT || 8081

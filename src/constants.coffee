@@ -17,3 +17,4 @@ module.exports =
   syncTimer: 25
   maxPowerups: 5
   powerupTimer: 400
+  maxPlayers: 10
