@@ -211,6 +211,7 @@ module.exports = class Universe
           @self.controls.aPressed = true
         when 32
           @self.controls.spacePressed = true
+          e.preventDefault()
         when 83, 75
           @self.controls.sPressed = true
       @syncSelf()
