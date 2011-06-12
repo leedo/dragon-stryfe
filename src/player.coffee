@@ -123,9 +123,9 @@ module.exports = class Player extends Animation
     velocity_x = @speed * scale_x
     velocity_y = @speed * scale_y
     @x -= velocity_x
-    @x = Math.min(constants.universeWidth, Math.max(@x, 0))
     @y -= velocity_y
-    @y = Math.min(constants.universeHeight, Math.max(@y, 0))
+    @x = util.clamp @x, 0, constants.universeWidth
+    @y = util.clamp @y, 0, constants.universeHeight
 
   updateTrail: ->
     if @dead
