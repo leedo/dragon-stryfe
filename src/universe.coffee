@@ -73,7 +73,7 @@ module.exports = class Universe
         @removePowerup id
         # only tell the server we hit the powerup
         if player.id == @self.id
-          @socket.send {action: "removePowerup", data: id}
+          @sendAction "removePowerup", id
 
     player.gameTick()
     player.tryToBreath(target) for id, target of @players()

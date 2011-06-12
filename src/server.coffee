@@ -195,14 +195,23 @@ socket.on "connection", (client) ->
   send(client, "addPowerups", powerup for id, powerup of game.powerups)
 
   client.on "message", (msg) ->
-    switch msg.action
-      when "initSelf"
-        broadcast(game, "addPlayer", msg.data)
-        self.player = msg.data
-        self.id = msg.source
-        game.players[msg.source] = msg.data
-        game.clients[msg.source] = client
 
+    # a socket could theoretically make multiple users since we don't
+    # do any sort of check for that here
+    if msg.action == "initSelf"
+      broadcast(game, "addPlayer", msg.data)
+      self.player = msg.data
+      self.id = msg.source
+      game.players[msg.source] = msg.data
+      game.clients[msg.source] = client
+      return
+
+    # bail out unless this socket has set up a user
+    # and the message's id matches this socket's id
+    return unless self.player and msg.source == self.id
+
+    # we have a valid user so process commands here
+    switch msg.action
       when "syncSelf"
         self.player[k] = v for k, v of msg.data
         broadcast(game, "syncPlayer", msg.data)
@@ -211,8 +220,8 @@ socket.on "connection", (client) ->
         broadcast(game, "removePowerup", msg.id)
       when "scorePoint"
         player = game.players[msg.data]
+        return unless player
         player.kills++
-        # increment their score in redis if they are authed
         redis.incr "ds-#{player.name}" if redis and game.authed[player.id]
         broadcast(game, "syncScore", {id: player.id, score: player.kills})
 
