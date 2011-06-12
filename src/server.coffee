@@ -152,7 +152,7 @@ send_powerup = ->
     powerup = {id: next_id(), x: x, y: y}
     game.powerups[powerup.id] = powerup
     broadcast("addPowerup", powerup)
-  setTimeout send_powerup, 10 + Math.random() * 10000
+  setTimeout send_powerup, Math.random() * 5000
 
 send_powerup()
 app.listen process.env.PORT || 8081
