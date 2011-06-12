@@ -1,5 +1,4 @@
 ControlState = require "controlstate"
-PositionState = require "positionstate"
 Animation = require "animation"
 
 constants = require "constants"
