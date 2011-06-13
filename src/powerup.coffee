@@ -5,19 +5,14 @@ constants = require "constants"
 exports.Powerup = class Powerup extends Animation
   prepare_animation: (opts) ->
     @radius = 10
-    @color = "#ffff00"
+    @rgb = [255, 255, 255]
     @prepare_powerup(opts)
 
   draw: (context) ->
-    context.fillStyle = @color
-    context.beginPath()
-    context.arc @x, @y, 5, 0, Math.PI*2, true
-    context.closePath()
-    context.stroke()
-    context.fill()
+    context.drawImage(@img, @x, @y)
 
   contains: (position) ->
-    dist = util.distanceFrom {x: @x, y: @y}, position
+    dist = util.distanceFrom {x: @x + @radius / 2, y: @y + @radius / 2}, position
     dist < @radius
 
 types = {

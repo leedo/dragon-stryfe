@@ -1,4 +1,6 @@
     <img src="/dragon2.png" style="position:absolute;left:-100px" id="dragon">
+    <img src="/health-powerup.png" style="position:absolute;left:-100px" id="health-powerup">
+    <img src="/energy-powerup.png" style="position:absolute;left:-100px" id="energy-powerup">
     <canvas id="universe" width="800" height="500"></canvas>
 
     <script src="/socket.io/socket.io.js"></script> 

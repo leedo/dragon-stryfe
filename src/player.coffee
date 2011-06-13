@@ -205,7 +205,7 @@ module.exports = class Player extends Animation
       transparency += 0.15
       for block in [0 .. blocks]
         opacity = (parseInt(Math.random() * 10) / 10) - transparency
-        context.fillStyle = "rgba(255,127,0,#{opacity})"
+        context.fillStyle = "rgba(255,255,255,#{opacity})"
         context.fillRect x + (block * blocksize), y, blocksize+1, blocksize+1
       width = width * rate
 
