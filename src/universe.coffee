@@ -58,7 +58,7 @@ module.exports = class Universe
     # sync self every tick?
     @syncSelf() #if @tick_count % constants.syncTimer == 0
 
-    diff = (new Date()).getTime() - start
+    diff = Math.max 0, (new Date()).getTime() - start
     setTimeout (=> @gameTick()), 40 - diff
 
   tickPlayer: (player) ->
