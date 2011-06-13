@@ -48,11 +48,11 @@ module.exports = class Universe
 
     # this clears the canvas
     @board.width = @board.width
-    @drawPowerups()
 
     @tickPlayer player for id, player of @players()
     @checkDeath()
 
+    @drawPowerups()
     @drawOverlay()
 
     # sync self every tick?
