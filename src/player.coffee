@@ -209,7 +209,6 @@ module.exports = class Player extends Animation
       context.fillStyle = "#000"
       context.fillRect -1, 2, 22, 4
       percent = @hpPercent()
-      console.log percent
       context.fillStyle = if percent > .2 then "green" else "red"
       context.fillRect 0, 3, percent * 20, 2
 

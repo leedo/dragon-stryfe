@@ -2,10 +2,11 @@ Animation = require "animation"
 util = require "util"
 constants = require "constants"
 
-module.exports = class Powerup extends Animation
+exports.Powerup = class Powerup extends Animation
   prepare_animation: (opts) ->
     @radius = 10
     @color = "#ffff00"
+    @prepare_powerup(opts)
 
   draw: (context) ->
     context.fillStyle = @color
@@ -15,9 +16,13 @@ module.exports = class Powerup extends Animation
     context.stroke()
     context.fill()
 
-  apply_bonus: (player) ->
-    player.energy = constants.maxEnergy
-
   contains: (position) ->
     dist = util.distanceFrom {x: @x, y: @y}, position
     dist < @radius
+
+types = {
+  health: require("healthboost"),
+  energy: require ("energyboost")
+}
+
+exports.createPowerup = (type, opts) -> new types[type](opts)

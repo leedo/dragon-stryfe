@@ -1,5 +1,5 @@
 Player = require 'player'
-Powerup = require 'powerup'
+powerup = require 'powerup'
 util = require 'util'
 constants = require 'constants'
 
@@ -114,11 +114,10 @@ module.exports = class Universe
 
   addPowerup: (opts) ->
     console.log "add powerup"
-    @powerups[opts.id] = new Powerup opts
+    @powerups[opts.id] = powerup.createPowerup(opts.type, opts)
 
   addPowerups: (new_powerups) ->
-    for state in new_powerups
-      @powerups[state.id] = new Powerup state
+    @addPowerup(opts) for opts in new_powerups
 
   syncScore: (data) ->
     player = @getPlayer data.id

@@ -22,12 +22,17 @@ next_id = -> object_id++
 
 games = []
 
+powerup_types = ["health", "energy"]
+random_powerup_type = ->
+  i = Math.floor Math.random() * powerup_types.length
+  powerup_types[i]
+
 send_powerup = (game) ->
   cb = ->
     if Object.keys(game.powerups).length < constants.maxPowerups
       x = Math.random() * constants.universeWidth
       y = Math.random() * constants.universeHeight
-      powerup = {id: next_id(), x: x, y: y}
+      powerup = {id: next_id(), x: x, y: y, type: random_powerup_type()}
       game.powerups[powerup.id] = powerup
       broadcast(game, "addPowerup", powerup)
     setTimeout cb, Math.random() * 5000
