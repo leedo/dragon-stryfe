@@ -5,8 +5,9 @@
 
 * node.js, 0.4.8 works
 * npm, 1.0.10
-* all the dependencies from `package.json`
-* you may need to install eco from git
+* `npm install -g coffee-script`
+* `npm install express socket.io stitch eco oauth redis`
+* `npm install https://github.com/sstephenson/eco/tarball/master`
 
 ## And then
 
