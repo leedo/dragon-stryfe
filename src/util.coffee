@@ -55,6 +55,7 @@ drawOutlinedText = (context, text, x, y) ->
   context.fillText text, x, y+1
   context.fillStyle = "#fff"
   context.fillText text, x, y
+  context.shadowBlur = 0
 
 module.exports = {
   length: length

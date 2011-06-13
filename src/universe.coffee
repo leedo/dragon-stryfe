@@ -125,10 +125,9 @@ module.exports = class Universe
 
   drawOverlay: ->
     #@drawStats()
-    @context.fillStyle = "rgba(0,0,0,0.5)"
-    @context.fillRect 5, 5, 120, 47
-    @context.font = "9px sans-serif"
-    util.drawOutlinedText @context, @self.name, 10, 15
+    @context.font = "bold 10px sans-serif"
+    @context.fillStyle = "#fff"
+    @context.fillText @self.name, 10, 16
     @drawEnergyMeter()
     @drawHealthMeter()
     @drawPlayerList()
@@ -138,14 +137,14 @@ module.exports = class Universe
 
   drawPlayerList: ->
     [x, y] = [@board.width - 100, 15]
-    @context.fillStyle = "rgba(0,0,0,0.5)"
-    @context.fillRect x - 5, y - 15, 100, 100
     @context.fillStyle = "#fff"
-    @context.font = "11px sans-serif"
     players = @players().sort (a, b) -> b.kills - a.kills
+    @context.font = "bold 11px sans-serif"
+    @context.fillText "Current Scores", x, y
+    @context.font = "11px sans-serif"
     for player in players
+      y += 12
       @context.fillText "#{parseInt player.kills} #{player.name}", x, y
-      y += 10
 
   drawStats: ->
     @context.fillStyle = "#fff"
@@ -247,8 +246,9 @@ module.exports = class Universe
     @context.fillStyle = "yellow"
     width = 110 * (@self.energy / constants.maxEnergy)
     @context.fillRect x, y, width, 11
+    @context.fillStyle = "rgba(0,0,0,0.5)"
     @context.font = "9px sans-serif"
-    util.drawOutlinedText @context, "ENERGY", x + 2, y + 9
+    @context.fillText "Energy", x + 2, y + 9
 
   drawHealthMeter: ->
     [x, y] = [10, 20]
@@ -257,8 +257,9 @@ module.exports = class Universe
     percent = @self.hpPercent()
     @context.fillStyle = if percent > .2 then "green" else "red"
     @context.fillRect x, y, percent * 110, 11
+    @context.fillStyle = "rgba(0,0,0,0.5)"
     @context.font = "9px sans-serif"
-    util.drawOutlinedText @context, "HEALTH", x + 2, y + 9
+    @context.fillText "HP", x + 2, y + 9
 
   sendAction: (action, data) ->
     @socket.send

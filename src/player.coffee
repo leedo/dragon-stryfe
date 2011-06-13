@@ -228,6 +228,7 @@ module.exports = class Player extends Animation
       context.fillStyle = if percent > .2 then "green" else "red"
       context.fillRect 0, 3, percent * 20, 2
 
+    context.font = "bold 10px sans-serif"
     util.drawOutlinedText context, @name, 0, 0
 
     context.restore()
