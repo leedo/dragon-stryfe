@@ -25,6 +25,11 @@ module.exports = class Player extends Animation
     @kills = 0
     @last_attacker = null
 
+    # when you get a bonus it adds to here, which is then moved to your
+    # real energy/health every tick, so it doesn't all go up at once
+    @health_regen = 0
+    @energy_regen = 0
+
   serialized: (full) ->
     fields = ["id", "controls", "energy", "x", "y", "angle", "speed", "damage", "dead", "kills"]
     data = {}
@@ -91,7 +96,7 @@ module.exports = class Player extends Animation
     if @angle < 0.0
        @angle += Math.PI * 2.0
 
-  updateEnergy: ->
+  updateStats: ->
     if @dead
       @energy = 0
     else if @thrusting()  # how can we be thrusting without any gas?
@@ -99,7 +104,18 @@ module.exports = class Player extends Animation
       @controls.wPressed = false unless @energy
     else
       @energy += constants.energyRegenRate
-      @energy = Math.min(@energy, constants.maxEnergy)
+
+    if @health_regen > 0
+      @health_regen--
+      @damage--
+
+    if @energy_regen > 0
+      @energy_regen--
+      @energy++
+
+    # enforce limits
+    @damage = Math.min @damage, 0
+    @energy = Math.min @energy, constants.maxEnergy
 
   thrusting: ->
     (@controls.wPressed or @controls.target) and @energy >= 1
@@ -112,7 +128,7 @@ module.exports = class Player extends Animation
     else
       @handleInput()
 
-    @updateEnergy()
+    @updateStats()
     @updateTrail()
     @updatePosition()
 

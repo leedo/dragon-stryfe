@@ -7,5 +7,4 @@ module.exports = class EnergyBoost extends Powerup
     @color = "#ffff00"
 
   apply_bonus: (player) ->
-    player.energy += constants.maxEnergy / 4
-    player.energy = Math.max constants.maxEnergy, player.energy
+    player.energy_regen += constants.maxEnergy / 2
