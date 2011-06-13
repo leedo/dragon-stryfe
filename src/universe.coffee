@@ -43,6 +43,7 @@ module.exports = class Universe
 
   gameTick: ->
     return if @stopped
+    start = (new Date()).getTime()
     @tick_count++
 
     # this clears the canvas
@@ -57,7 +58,8 @@ module.exports = class Universe
     # sync self every tick?
     @syncSelf() #if @tick_count % constants.syncTimer == 0
 
-    setTimeout (=> @gameTick()), 40
+    diff = (new Date()).getTime() - start
+    setTimeout (=> @gameTick()), 40 - diff
 
   tickPlayer: (player) ->
     # flip player around if he is at any walls
