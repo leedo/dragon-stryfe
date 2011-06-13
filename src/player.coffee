@@ -114,7 +114,7 @@ module.exports = class Player extends Animation
       @energy++
 
     # enforce limits
-    @damage = Math.min @damage, 0
+    @damage = Math.max @damage, 0
     @energy = Math.min @energy, constants.maxEnergy
 
   thrusting: ->
