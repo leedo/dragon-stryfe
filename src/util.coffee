@@ -46,16 +46,14 @@ randomColor = ->
   'rgba('+ Math.floor(Math.random()*155+100) + ',' + Math.floor(Math.random()*155+100)+','+Math.floor(Math.random()*155+100)+',255)'
 
 drawOutlinedText = (context, text, x, y) ->
-  context.shadowBlur = 3
+  context.shadowBlur = 1
   context.shadowColor = "#000"
   context.fillStyle = "#000"
-  context.font = "12px sans-serif"
   context.fillText text, x-1, y
   context.fillText text, x+1, y
   context.fillText text, x, y-1
   context.fillText text, x, y+1
   context.fillStyle = "#fff"
-  context.font = "12px sans-serif"
   context.fillText text, x, y
 
 module.exports = {

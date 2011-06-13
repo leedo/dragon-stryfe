@@ -125,6 +125,10 @@ module.exports = class Universe
 
   drawOverlay: ->
     #@drawStats()
+    @context.fillStyle = "rgba(0,0,0,0.5)"
+    @context.fillRect 5, 5, 120, 47
+    @context.font = "9px sans-serif"
+    util.drawOutlinedText @context, @self.name, 10, 15
     @drawEnergyMeter()
     @drawHealthMeter()
     @drawPlayerList()
@@ -133,8 +137,11 @@ module.exports = class Universe
     powerup.draw @context for id, powerup of @powerups
 
   drawPlayerList: ->
-    [x, y] = [@board.width - 100, 100]
+    [x, y] = [@board.width - 100, 15]
+    @context.fillStyle = "rgba(0,0,0,0.5)"
+    @context.fillRect x - 5, y - 15, 100, 100
     @context.fillStyle = "#fff"
+    @context.font = "11px sans-serif"
     players = @players().sort (a, b) -> b.kills - a.kills
     for player in players
       @context.fillText "#{parseInt player.kills} #{player.name}", x, y
@@ -235,23 +242,23 @@ module.exports = class Universe
 
   drawEnergyMeter: ->
     [x, y] = [10, 35]
-    util.drawOutlinedText @context, "Energy", x, y
-    y += 3
     @context.fillStyle = "rgba(255,255,255,0.2)"
-    @context.fillRect x, y, 100, 5
+    @context.fillRect x, y, 110, 11
     @context.fillStyle = "yellow"
-    width = 100 * (@self.energy / constants.maxEnergy)
-    @context.fillRect x, y, width, 5
+    width = 110 * (@self.energy / constants.maxEnergy)
+    @context.fillRect x, y, width, 11
+    @context.font = "9px sans-serif"
+    util.drawOutlinedText @context, "ENERGY", x + 2, y + 9
 
   drawHealthMeter: ->
-    [x, y] = [10, 15]
-    util.drawOutlinedText @context, "Health", x, y
-    y += 3
+    [x, y] = [10, 20]
     @context.fillStyle = "rgba(255,255,255,0.2)"
-    @context.fillRect x, y, 100, 5
+    @context.fillRect x, y, 110, 11
     percent = @self.hpPercent()
     @context.fillStyle = if percent > .2 then "green" else "red"
-    @context.fillRect x, y, percent * 100, 5
+    @context.fillRect x, y, percent * 110, 11
+    @context.font = "9px sans-serif"
+    util.drawOutlinedText @context, "HEALTH", x + 2, y + 9
 
   sendAction: (action, data) ->
     @socket.send
