@@ -90,7 +90,7 @@ app.get "/", (req, res) ->
   if !req.session.oauth_access_token
     res.redirect "/login"
   else
-    res.redirect "/play"
+    res.redirect "/game"
 
 
 prepare_render_game = (req) ->
@@ -108,11 +108,16 @@ prepare_render_game = (req) ->
   }
 
 
-app.get "/play", (req, res) ->
-  res.render "play", prepare_render_game(req)
-
 app.get "/game", (req, res) ->
-  res.partial "game", prepare_render_game(req)
+  ua = req.header "User-Agent"
+  console.log ua
+  if ua.match /mobile|ip[oa]d|iphone|android|webos/i
+    res.redirect "/mobile"
+  else
+    res.render "game", prepare_render_game(req)
+
+app.get "/mobile", (req, res) ->
+  res.partial "mobile", prepare_render_game(req)
 
 app.get "/scoreboard", (req, res) ->
   sendScores = (scores) ->

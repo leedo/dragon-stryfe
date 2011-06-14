@@ -1,6 +1,6 @@
 <div id="login">
   <p><a href="/twitter_login"><img src="http://si0.twimg.com/images/dev/buttons/sign-in-with-twitter-l.png"></a></p>
   <p><em style="color:#666;font-size:0.8em">or</em></p>
-  <p><a href="/play">Play Anonymously</a></p>
+  <p><a href="/game">Play Anonymously</a></p>
 </div>
 
