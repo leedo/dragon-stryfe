@@ -18,15 +18,24 @@
         var universe = new Universe(<%= @client_id %>, "<%= @screen_name %>", <%- JSON.stringify @colors %>);
         $("#tweet-button").bind("click", function(e) {
           streak = document.getElementById("kill-streak").value
+          document.getElementById("tweet-dialog").style.display = "none";
           $.get("/twat?streak="+streak, function(body){
-            document.getElementById("tweet-dialog").style.display = "none";
           });
+        });
+        $("#close-dialog").bind("click", function(e) {
+          document.getElementById("tweet-dialog").style.display = "none";
         });
       });
     </script>
-    <div id="tweet-dialog" style="display:none">
-      <button id="tweet-button">Tweet your kill streak!</button>
-      <input id="kill-streak" type="hidden" value="1">
+    <div id="tweet-dialog">
+      <p>
+        Kill Streak!
+        <input disabled="1" id="kill-streak" type="text" value="1">
+        <button id="close-dialog">Close</button>
+        <% if @screen_name: %>
+          <button id="tweet-button">Tweet your kill streak!</button>
+        <% end %>
+      </p>
     </div>
   </body>
 </html>
