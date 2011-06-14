@@ -7,9 +7,11 @@ constants = require './constants.js'
 OAuth = require('oauth').OAuth
 stream = require 'stream'
 
-redis = try
+have_redis = true
+
+try
   redis = require('redis').createClient()
-  redis.on "error", (e) -> redis = null
+  redis.on "error", (e) -> have_redis = false
 catch e
   console.log "no redis available, so persistent scores won't be kept"
 
@@ -123,7 +125,7 @@ app.get "/scoreboard", (req, res) ->
   sendScores = (scores) ->
     res.partial "scoreboard", {scores: scores}
 
-  return sendScores [] unless redis
+  return sendScores [] unless have_redis
 
   redis.keys "ds-*", (err, keys) ->
     return sendScores [] if err or !keys.length
@@ -136,7 +138,9 @@ app.get "/scoreboard", (req, res) ->
 
 
 app.get "/login", (req, res) ->
-  res.render "login"
+  send_login = (kills) -> res.render "login", {kills: kills}
+  return send_login unless have_redis
+  redis.get "ds-total-kills", (err, total) -> send_login total
 
 app.get "/dragon.xml", (req, res) ->
   res.contentType "application/dragon+xml"
@@ -245,8 +249,10 @@ socket.on "connection", (client) ->
         player = game.players[msg.data]
         return unless player
         player.kills++
-        redis.incr "ds-#{player.name}" if redis and game.authed[player.id]
         broadcast(game, "syncScore", {id: player.id, score: player.kills})
+        if have_redis
+          redis.incr "ds-#{player.name}" if game.authed[player.id]
+          redis.incr "ds-total-kills"
 
   client.on "disconnect", ->
     broadcast(game, "removePlayer", self.id)
