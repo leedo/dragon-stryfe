@@ -113,8 +113,8 @@ module.exports = class Player extends Animation
       @damage--
 
     if @energy_regen > 0
-      @energy_regen--
-      @energy++
+      @energy_regen -= 2
+      @energy += 2
 
     # enforce limits
     @damage = Math.max @damage, 0

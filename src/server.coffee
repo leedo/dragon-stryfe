@@ -32,8 +32,8 @@ send_powerup = (game) ->
     if Object.keys(game.powerups).length < constants.maxPowerups
       x = Math.random() * constants.universeWidth
       y = Math.random() * constants.universeHeight
-      x = util.clamp x, 10, constants.universeWidth - 10
-      y = util.clamp y, 10, constants.universeHeight - 10
+      x = util.clamp x, 10, constants.universeWidth - 20
+      y = util.clamp y, 30, constants.universeHeight - 20
       powerup = {id: next_id(), x: x, y: y, type: random_powerup_type()}
       game.powerups[powerup.id] = powerup
       broadcast(game, "addPowerup", powerup)
