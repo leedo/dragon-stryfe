@@ -22,7 +22,7 @@ next_id = -> object_id++
 
 games = []
 
-powerup_types = ["health", "energy"]
+powerup_types = ["health", "energy", "energy", "energy"]
 random_powerup_type = ->
   i = Math.floor Math.random() * powerup_types.length
   powerup_types[i]
@@ -37,7 +37,7 @@ send_powerup = (game) ->
       powerup = {id: next_id(), x: x, y: y, type: random_powerup_type()}
       game.powerups[powerup.id] = powerup
       broadcast(game, "addPowerup", powerup)
-    setTimeout cb, Math.random() * 5000
+    setTimeout cb, Math.random() * 10000
 
 
 addGame = (logname) ->
@@ -49,7 +49,7 @@ addGame = (logname) ->
     log: if constants.fullLogs then fs.createWriteStream(logname, {encoding:'utf8'}) else {}
     }
   games.push newgame
-  setTimeout send_powerup(newgame), Math.random() * 5000
+  setTimeout send_powerup(newgame), Math.random() * 10000
   return newgame
 
 

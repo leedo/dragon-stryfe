@@ -15,9 +15,9 @@ module.exports =
   deadlyDamage: 100
   deathAnimationTime: 50
   syncTimer: 25
-  maxPowerups: 5
+  maxPowerups: 2
   powerupTimer: 400
-  maxPlayers: 10
+  maxPlayers: 5
   fullLogs: false
   logPrefix: "/tmp/"
   tickLength: 40
