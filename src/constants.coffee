@@ -4,7 +4,7 @@ module.exports =
   maxEnergy: 200.0
   energyRegenRate: 0.25
   maxTrailLength: 10
-  maxSpeed: 8
+  maxSpeed: 6
   minSpeed: -1
   accelRate: 0.5
   coastSpeed: 0.5

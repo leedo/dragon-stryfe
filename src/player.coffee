@@ -148,7 +148,7 @@ module.exports = class Player extends Animation
       return
     @segment_dist += @speed
     dist = Math.abs @segment_dist
-    if dist > 4
+    if dist > 3
       @trail.unshift {x: @x, y: @y, dist: dist, angle: @angle}
       @trail.pop() if @trail.length > constants.maxTrailLength
       @segment_dist = 0
