@@ -5,6 +5,7 @@ constants = require 'constants'
 
 module.exports = class Universe
   constructor: (id, name, colors) ->
+    @last_refresh
     @player_map = {}
     @powerup_map = {}
     @tick_count = 0
@@ -14,13 +15,13 @@ module.exports = class Universe
     @context = @board.getContext "2d"
 
     @createSelf id, name, colors
+    @refresh()
     @connect()
 
   startGame: ->
     @stopped = false
     @player_map[@self.id] = @self
     @enableControls()
-    @gameTick()
 
   stopGame: ->
     @stopped = true
@@ -41,25 +42,32 @@ module.exports = class Universe
       x: @board.width / 2
       y: @board.height / 2
 
-  gameTick: ->
-    return if @stopped
-    start = (new Date()).getTime()
-    @tick_count++
+  refresh: ->
+    ticks = 1
+    if @last_refresh
+      now = (new Date()).getTime()
+      diff = now - @last_refresh
+      ticks = Math.floor diff / constants.tickLength
 
-    # this clears the canvas
+    @gameTick() for i in [1 .. ticks]
+
     @board.width = @board.width
-
-    @tickPlayer player for id, player of @players()
-    @checkDeath()
+    for player in @players()
+      player.draw @context
+      player.drawName(@context, player != @self)
 
     @drawPowerups()
     @drawOverlay()
+    @syncSelf() unless @stopped
 
-    # sync self every tick?
-    @syncSelf() #if @tick_count % constants.syncTimer == 0
+    @last_refresh = (new Date()).getTime()
+    setTimeout (=> @refresh()), constants.tickLength
 
-    diff = Math.max 0, (new Date()).getTime() - start
-    setTimeout (=> @gameTick()), 40 - diff
+  gameTick: ->
+    @tick_count++
+    return if @stopped
+    @tickPlayer player for id, player of @players()
+    @checkDeath()
 
   tickPlayer: (player) ->
     # flip player around if he is at any walls
@@ -79,8 +87,6 @@ module.exports = class Universe
 
     player.gameTick()
     player.tryToBreath(target) for id, target of @players()
-    player.draw @context
-    player.drawName(@context, player != @self)
 
   players: ->
     player for id, player of @player_map

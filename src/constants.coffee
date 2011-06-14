@@ -20,3 +20,4 @@ module.exports =
   maxPlayers: 10
   fullLogs: false
   logPrefix: "/tmp/"
+  tickLength: 40
