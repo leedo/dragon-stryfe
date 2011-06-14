@@ -48,11 +48,14 @@ module.exports = class Player extends Animation
   handleInput: ->
     if @controls.spacePressed
       @breathing = Math.PI
+
     if @controls.wPressed and @speed < constants.maxSpeed
       @speed += constants.accelRate
+
     if @controls.sPressed and @speed > constants.minSpeed
       @speed -= constants.brakingRate
-      @speed = 0 if @speed < constants.minSpeed
+      @speed = constants.minSpeed if @speed < constants.minSpeed
+
     if @controls.target != false
       # try and steer towards the target, slow down if it's under our turning radius
       # otherwise speed up
