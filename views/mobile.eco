@@ -13,10 +13,20 @@
     <script src="/socket.io/socket.io.js"></script> 
     <script src="/client.js"></script> 
     <script>
-      document.addEventListener("DOMContentLoaded", function(){
+      $(document).ready(function(){
         var Universe = require("universe");
         var universe = new Universe(<%= @client_id %>, "<%= @screen_name %>", <%- JSON.stringify @colors %>);
-      }, false);
+        $("#tweet-button").bind("click", function(e) {
+          streak = document.getElementById("kill-streak").value
+          $.get("/twat?streak="+streak, function(body){
+            document.getElementById("tweet-dialog").style.display = "none";
+          });
+        });
+      });
     </script>
+    <div id="tweet-dialog" style="display:none">
+      <button id="tweet-button">Tweet your kill streak!</button>
+      <input id="kill-streak" type="hidden" value="1">
+    </div>
   </body>
 </html>

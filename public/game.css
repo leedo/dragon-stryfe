@@ -115,3 +115,20 @@ p.progress {
   left: 0px;
   right: 0px;
 }
+
+#tweet-dialog {
+  width: 250px;
+  height: 150px;
+  background: #fff;
+  border: 1px solid #000;
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  margin-left: -125px;
+}
+
+#tweet-button {
+  display: block;
+  margin: 50px auto;
+  width: 200px;
+}

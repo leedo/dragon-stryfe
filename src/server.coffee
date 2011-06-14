@@ -136,6 +136,27 @@ app.get "/scoreboard", (req, res) ->
       console.log data
       sendScores data.sort (a, b) -> b.score - a.score
 
+app.get "/twat", (req, res) ->
+  return res.send "fff" unless req.session.screen_name and req.param "streak"
+
+  kills = req.param "streak"
+  title = "Dragon Lord"
+  url = "http://www.dragonstryfe.com"
+
+  oa = new OAuth req.session.oa._requestUrl,
+                 req.session.oa._accessUrl,
+                 req.session.oa._consumerKey,
+                 req.session.oa._consumerSecret,
+                 req.session.oa._version,
+                 req.session.oa._authorize_callback,
+                 req.session.oa._signatureMethod
+
+  oa.post "http://api.twitter.com/1/statuses/update.json",
+    req.session.oauth_access_token,
+    req.session.oauth_access_token_secret,
+    {status: "I am a #{title} with #{kills} kills! Come help unlock @dragonstryfe #{url}"},
+    (error, data, response) ->
+      res.send "success"
 
 app.get "/login", (req, res) ->
   res.render "login"
@@ -189,8 +210,7 @@ app.get "/login_success", (req, res) ->
       else
         req.session.oauth_access_token = access_token
         req.session.oauth_access_token_secret = access_token_secret
-        oa.getProtectedResource "http://api.twitter.com/1/account/verify_credentials.json",
-          "GET",
+        oa.get "http://api.twitter.com/1/account/verify_credentials.json",
           req.session.oauth_access_token,
           req.session.oauth_access_token_secret,
           (error, data, response) ->
@@ -252,7 +272,7 @@ socket.on "connection", (client) ->
         player = game.players[msg.data]
         return unless player
         player.kills++
-        broadcast(game, "syncScore", {id: player.id, score: player.kills})
+        broadcast(game, "syncScore", {id: player.id, score: player.kills, killer: self.id})
         if have_redis
           redis.incr "ds-#{player.name}" if game.authed[player.id]
           redis.incr "ds-total-kills"

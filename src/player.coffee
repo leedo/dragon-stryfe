@@ -24,6 +24,7 @@ module.exports = class Player extends Animation
     @flash = 0
     @kills = 0
     @last_attacker = null
+    @kill_streak = 0
 
     # when you get a bonus it adds to here, which is then moved to your
     # real energy/health every tick, so it doesn't all go up at once

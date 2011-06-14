@@ -132,6 +132,10 @@ module.exports = class Universe
     @addPowerup(opts) for opts in new_powerups
 
   syncScore: (data) ->
+
+    if data.id == @self.id
+      @self.kill_streak++
+
     player = @getPlayer data.id
     player.kills = data.score
 
@@ -288,6 +292,13 @@ module.exports = class Universe
         console.log "#{@self.name} died at tick #{@tick_count}"
         @sendAction "scorePoint", @self.last_attacker
         @self.dead = 1
+
+        if @self.kill_streak > 0
+          dialog = document.getElementById "tweet-dialog"
+          input = document.getElementById "kill-streak"
+          input.value = @self.kill_streak
+          dialog.style.display = "block"
+
       else if @self.dead >= constants.deathAnimationTime
         @self.damage = 0
         @self.dead = 0
@@ -295,6 +306,7 @@ module.exports = class Universe
         @self.y = Math.random() * constants.universeHeight
         @self.flash = 1
         @self.energy = constants.maxEnergy
+        @self.kill_streak = 0
         # hacky...  should draw this in the dragon drawing routine?
         # update some kinda scoreboard?
 
