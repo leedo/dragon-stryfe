@@ -125,6 +125,8 @@ p.progress {
   left: 50%;
   top: 100px;
   margin-left: -125px;
+  display: none;
+  border-radius: 10px;
 }
 
 #tweet-button {
