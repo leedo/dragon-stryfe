@@ -1,6 +1,6 @@
 module.exports =
-  universeWidth: 800
-  universeHeight: 500
+  universeWidth: 480
+  universeHeight: 300
   maxEnergy: 200.0
   energyRegenRate: 0.25
   maxTrailLength: 10

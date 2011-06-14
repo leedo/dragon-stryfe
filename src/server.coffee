@@ -90,9 +90,10 @@ app.get "/", (req, res) ->
   if !req.session.oauth_access_token
     res.redirect "/login"
   else
-    res.redirect "/game"
+    res.redirect "/play"
 
-app.get "/game", (req, res) ->
+
+prepare_render_game = (req) ->
   req.session.client_id = next_id()
 
   # keep track of users that have authed against twitter
@@ -100,11 +101,18 @@ app.get "/game", (req, res) ->
   for game in games
     game.authed[req.session.client_id] = true if req.session.screen_name
 
-  res.render "game", {
+  {
     screen_name: req.session.screen_name || "",
     colors: req.session.colors || [],
     client_id: req.session.client_id
   }
+
+
+app.get "/play", (req, res) ->
+  res.render "play", prepare_render_game(req)
+
+app.get "/game", (req, res) ->
+  res.partial "game", prepare_render_game(req)
 
 app.get "/scoreboard", (req, res) ->
   sendScores = (scores) ->

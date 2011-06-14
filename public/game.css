@@ -19,10 +19,10 @@ h1 span {
 
 canvas#universe {
   display: block;
-  width: 800px;
-  height: 500px;
+  width: 480px;
+  height: 300px;
   margin: 0 auto;
-  background: #000 url(/background.jpg) center center no-repeat;
+  /*background: #000 url(/background.jpg) center center no-repeat;*/
 }
 
 div#container {
@@ -75,6 +75,14 @@ a {
   border: none;
   margin: 0 auto;
   display: block;
+}
+
+#game-frame {
+  width: 480px;
+  height: 300px;
+  display: block;
+  margin: 0 auto;
+  border: none;
 }
 
 h2 {

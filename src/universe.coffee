@@ -5,13 +5,13 @@ constants = require 'constants'
 
 module.exports = class Universe
   constructor: (id, name, colors) ->
+    @board = document.getElementById "universe"
     @last_refresh
     @player_map = {}
     @powerup_map = {}
     @tick_count = 0
     @stopped = true
-    @is_touching = false
-    @board = document.getElementById "universe"
+    @is_mousing = false
     @context = @board.getContext "2d"
 
     @createSelf id, name, colors
@@ -21,7 +21,10 @@ module.exports = class Universe
   startGame: ->
     @stopped = false
     @player_map[@self.id] = @self
-    @enableControls()
+    if document.ontouchmove == null or document.ontouchmove != undefined
+      @enableTouchControls()
+    else
+      @enableDesktopControls()
 
   stopGame: ->
     @stopped = true
@@ -181,24 +184,32 @@ module.exports = class Universe
     document.removeEventListener "keyup"
     document.removeEventListener "keydown"
 
-  enableControls: ->
-    @board.addEventListener "mousedown", (e) =>
+  enableTouchControls: ->
+    document.addEventListener "click", (e) => e.preventDefault()
+    document.addEventListener "touchstart", (e) =>
+      e.preventDefault()
+      @self.controls.target = {x:e.touches[0].pageX, y:e.touches[0].pageY}
+    , false
+    document.addEventListener "touchmove", (e) =>
+      e.preventDefault()
+      @self.controls.target = {x:e.touches[0].pageX, y:e.touches[0].pageY}
+    , false
+
+  enableDesktopControls: ->
+    document.addEventListener "mousedown", (e) =>
       return unless e.target == @board and not @self.controls.anyPressed()
       @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
       @self.controls.mousedown = true
-      @is_touching = true
+      @is_mousing = true
     , false
     @board.addEventListener "mousemove", (e) =>
-      return unless @is_touching or (not @self.controls.anyPressed() and @self.controls.mouseDown)
+      return unless @is_mousing or (not @self.controls.anyPressed() and @self.controls.mouseDown)
       @self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
     , false
     @board.addEventListener "mouseup", (e) =>
       @self.controls.mouseDown = false
-      return unless @is_touching
-      #@self.controls.target = {x:e.clientX - @board.offsetLeft, y:e.clientY - @board.offsetTop}
-      @is_touching = false
+      @is_mousing = false
     , false
-
     document.addEventListener "keyup", (e) =>
       switch e.keyCode
         when 87, 73
