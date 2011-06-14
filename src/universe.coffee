@@ -36,6 +36,9 @@ module.exports = class Universe
     if !name
       name = prompt "What is your dragon's name?"
       name = name.substr 0, 16
+      name = name.replace(/@/g,'')
+    else
+      name = '@' + name
 
     @self = new Player
       id: id
