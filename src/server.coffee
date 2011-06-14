@@ -142,8 +142,8 @@ app.get "/login", (req, res) ->
 
 app.get "/total", (req, res) ->
   return res.send "?" unless have_redis
-  redis.get "ds-total-kills", (err, res) ->
-    res.send "#{res}"
+  redis.get "ds-total-kills", (err, kills) ->
+    res.send "#{kills}"
 
 app.get "/dragon.xml", (req, res) ->
   res.contentType "application/dragon+xml"
