@@ -260,7 +260,7 @@ module.exports = class Universe
     [x, y] = [10, 35]
     @context.fillStyle = "rgba(255,255,255,0.2)"
     @context.fillRect x, y, 110, 11
-    @context.fillStyle = "#FF00FF"
+    @context.fillStyle = "rgb(252, 255, 0)"
     width = 110 * (@self.energy / constants.maxEnergy)
     @context.fillRect x, y, width, 11
     @context.fillStyle = "rgba(0,0,0,0.5)"

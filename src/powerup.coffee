@@ -5,7 +5,6 @@ constants = require "constants"
 exports.Powerup = class Powerup extends Animation
   prepare_animation: (opts) ->
     @radius = 10
-    @rgb = [255, 255, 255]
     @prepare_powerup(opts)
 
   draw: (context) ->
