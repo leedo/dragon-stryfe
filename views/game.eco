@@ -6,9 +6,9 @@
     <script src="/socket.io/socket.io.js"></script> 
     <script src="/client.js"></script> 
     <script>
-      document.addEventListener("DOMContentLoaded", function(){
+      $(document).ready(function(){
         var Universe = require("universe");
         var universe = new Universe(<%= @client_id %>, "<%= @screen_name %>", <%- JSON.stringify @colors %>);
-      }, false);
+      });
     </script>
 

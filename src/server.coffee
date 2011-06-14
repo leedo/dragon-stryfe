@@ -138,9 +138,12 @@ app.get "/scoreboard", (req, res) ->
 
 
 app.get "/login", (req, res) ->
-  send_login = (kills) -> res.render "login", {kills: kills}
-  return send_login unless have_redis
-  redis.get "ds-total-kills", (err, total) -> send_login total
+  res.render "login"
+
+app.get "/total", (req, res) ->
+  return res.send "?" unless have_redis
+  redis.get "ds-total-kills", (err, res) ->
+    res.send "#{res}"
 
 app.get "/dragon.xml", (req, res) ->
   res.contentType "application/dragon+xml"

@@ -1,16 +1,27 @@
 <html>
   <head>
     <link type="text/css" rel="stylesheet" href="/game.css" />
-    <meta name="viewport" content="width=800, user-scalable=no">
+    <script type="text/javascript" src="/zepto.js"></script>
   </head>
   <body>
     <div id="container">
       <h1>dragonstry<span>ƒ</span>e</h1>
       <%- @body %>
       <p class="progress">
-        <span><%= @kills or 0 %></span> of
+        <span id="total_kills"><%= @kills or 0 %></span> of
         <span>100,000</span> Dragon Soul's released.
       </p>
     </div>
+    <script type="text/javascript">
+      $(document).ready(function(){
+        total = document.getElementById("total_kills");
+        setInterval(function() {
+          $.get("/total", function(body){
+            console.log(body);
+            total.innerHTML = body
+          });
+        }, 5000);
+      });
+    </script>
   </body>
 </html>
